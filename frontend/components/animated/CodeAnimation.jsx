@@ -1,91 +1,59 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const CodeAnimation = () => {
-  const [currentLine, setCurrentLine] = useState(0);
-  const [currentChar, setCurrentChar] = useState(0);
-  const [blinkCursor, setBlinkCursor] = useState(true);
-
-  const codeLines = [
-    'function findMaxSubarraySum(arr) {',
-    '  let maxSoFar = arr[0];',
-    '  let maxEndingHere = arr[0];',
-    '',
-    '  for (let i = 1; i < arr.length; i++) {',
-    '    maxEndingHere = Math.max(arr[i], maxEndingHere + arr[i]);',
-    '    maxSoFar = Math.max(maxSoFar, maxEndingHere);',
-    '  }',
-    '',
-    '  return maxSoFar;',
-    '}'
-  ];
-
-  const [visibleCode, setVisibleCode] = useState(Array(codeLines.length).fill(''));
+const FloatingCodeCard = () => {
+  const [offset, setOffset] = useState(0);
 
   useEffect(() => {
-    // Typing animation
-    if (currentLine < codeLines.length) {
-      const line = codeLines[currentLine];
-      if (currentChar < line.length) {
-        const timer = setTimeout(() => {
-          setVisibleCode(prev => {
-            const newCode = [...prev];
-            newCode[currentLine] = line.substring(0, currentChar + 1);
-            return newCode;
-          });
-          setCurrentChar(currentChar + 1);
-        }, 50); // Typing speed
-        return () => clearTimeout(timer);
-      } else {
-        const timer = setTimeout(() => {
-          setCurrentLine(currentLine + 1);
-          setCurrentChar(0);
-        }, 200); // Delay before next line
-        return () => clearTimeout(timer);
-      }
-    } else {
-      // Reset animation after completion
-      const timer = setTimeout(() => {
-        setCurrentLine(0);
-        setCurrentChar(0);
-        setVisibleCode(Array(codeLines.length).fill(''));
-      }, 3000); // Wait before restarting
-      return () => clearTimeout(timer);
-    }
-  }, [currentLine, currentChar, codeLines]);
+    let animationFrameId;
+    let startTime = null;
 
-  // Blinking cursor effect
-  useEffect(() => {
-    const cursorInterval = setInterval(() => {
-      setBlinkCursor(prev => !prev);
-    }, 500);
-    return () => clearInterval(cursorInterval);
+    const animate = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = (timestamp - startTime) / 1000; 
+
+     
+      setOffset(Math.sin(progress * 1.5) * 15); 
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animationFrameId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrameId);
   }, []);
 
   return (
-    <div className="bg-gray-900 rounded-lg shadow-2xl overflow-hidden border border-gray-700 transform perspective-1000 rotateY-3 hover:rotateY-0 transition-transform duration-500">
-      <div className="bg-gray-800 px-4 py-2 flex items-center gap-2">
-        <div className="flex gap-1.5">
-          <div className="w-3 h-3 rounded-full bg-red-500"></div>
-          <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-          <div className="w-3 h-3 rounded-full bg-green-500"></div>
-        </div>
-        <div className="text-gray-400 text-sm ml-2">findMaxSubarraySum.js</div>
+    <div 
+      className="relative w-80 max-w-full rounded-lg bg-gray-800 p-4 shadow-2xl sm:w-96 sm:p-6"
+      style={{
+        transform: `translateY(${offset}px)`,
+        transition: 'transform 0.05s cubic-bezier(0.4, 0, 0.2, 1)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+      }}
+    >
+      <div className="mb-4 flex items-center space-x-2">
+        <div className="h-3 w-3 rounded-full bg-red-500 sm:h-4 sm:w-4"></div>
+        <div className="h-3 w-3 rounded-full bg-yellow-500 sm:h-4 sm:w-4"></div>
+        <div className="h-3 w-3 rounded-full bg-green-500 sm:h-4 sm:w-4"></div>
       </div>
-      <div className="p-4 font-mono text-sm relative">
-        <pre className="text-gray-300">
-          {visibleCode.map((line, index) => (
-            <div key={index} className="min-h-[1.5rem]">
-              <span className="text-gray-500 mr-4">{index + 1}</span>
-              <span className="text-purple-400">{line}</span>
-              {currentLine === index && blinkCursor && <span className="animate-pulse">|</span>}
-            </div>
-          ))}
-        </pre>
-        
+      <div className="font-mono text-sm leading-relaxed sm:text-base">
+        <div className="text-purple-400">#include</div>
+        <div>
+          <span className="text-white">&lt;iostream&gt;</span>
+        </div>
+        <div className="text-white">using namespace std;</div>
+        <div className="text-white">int main() {`{`}</div>
+        <div className="ml-6">
+          <span className="text-white">cout &lt;&lt; </span>
+          <span className="text-green-400">"Hello, Coders!"</span>
+          <span className="text-white"> &lt;&lt; endl;</span>
+        </div>
+        <div className="ml-6 text-white">return 0;</div>
+        <div className="text-white">{`}`}</div>
       </div>
     </div>
   );
 };
 
-export default CodeAnimation;
+export default FloatingCodeCard;
