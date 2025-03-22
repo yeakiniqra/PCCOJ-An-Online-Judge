@@ -114,8 +114,20 @@ class UserLoginSerializer(serializers.Serializer):
 
 
 # User Profile Serializer
-# class UserProfileSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = UserProfile
-#         fields = ['user', 'bio', 'profile_picture', 'country', 'institution', 'rating', 'solved_problems', 'rank']
-#         read_only_fields = ['user', 'rating', 'solved_problems', 'rank']
+class UserProfileSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)  # Display the username instead of the user ID
+
+    class Meta:
+        model = UserProfile
+        fields = [
+            'user',
+            'mobile',
+            'profile_picture',
+            'rating',
+            'total_submissions',
+            'total_solved',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['rating', 'total_submissions', 'total_solved', 'created_at', 'updated_at']
+       

@@ -20,10 +20,9 @@ class AuthenticationView(viewsets.GenericViewSet):
             return UserRegistrationSerializer
         elif self.action == 'user_login':
             return UserLoginSerializer
-        elif self.action == 'user_logout':  
-            return None
+        elif self.action == 'user_profile':
+            return UserProfileSerializer
         return super().get_serializer_class()
-        
 
     @action(methods=['POST'], detail=False)
     def user_register(self, request):
@@ -38,39 +37,45 @@ class AuthenticationView(viewsets.GenericViewSet):
             last_name=serializer.validated_data.get('last_name', '')
         )
 
-        return Response(
-            {'message': 'User registered successfully'},
-            status=status.HTTP_201_CREATED
-        )
+        # Create a UserProfile for the new user
+        UserProfile.objects.create(user=user)
+
+        return Response({'message': 'User registered successfully'}, status=status.HTTP_201_CREATED)
 
     @action(methods=['POST'], detail=False)
     def user_login(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        username = serializer.validated_data['username'].lower()  # Case-insensitive login
+        username = serializer.validated_data['username'].lower()
         password = serializer.validated_data['password']
         user = authenticate(username=username, password=password)
 
         if not user:
-            return Response(
-                {'error': 'Invalid credentials'},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
         token, _ = Token.objects.get_or_create(user=user)
 
-        return Response(
-            {'token': token.key, 'user_id': user.pk},
-            status=status.HTTP_200_OK
-        )
+        return Response({'token': token.key, 'user_id': user.pk}, status=status.HTTP_200_OK)
 
     @action(methods=['POST'], detail=False, permission_classes=[IsAuthenticated])
     def user_logout(self, request):
         request.user.auth_token.delete()
         logout(request)
+        return Response({'message': 'User logged out successfully'}, status=status.HTTP_200_OK)
 
-        return Response(
-            {'message': 'User logged out successfully'},
-            status=status.HTTP_200_OK
-        )
+    @action(methods=['GET', 'PUT'], detail=False, permission_classes=[IsAuthenticated])
+    def user_profile(self, request):
+        """Retrieve or update user profile."""
+        user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+        if request.method == 'GET':
+            serializer = UserProfileSerializer(user_profile)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        elif request.method == 'PUT':
+            serializer = UserProfileSerializer(user_profile, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
