@@ -4,6 +4,7 @@ import Navbar from "@/components/shared/Navbar";
 import Footer from "@/components/shared/Footer";
 import NextTopLoader from 'nextjs-toploader';
 import ScrollToTop from "@/components/shared/ScrollToTop";
+import { AuthProvider } from "@/context/useAuth";
 
 
 const sora = SoraFont({ subsets: ["latin"] });
@@ -17,11 +18,13 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={sora.className} >
+      <AuthProvider>
         <Navbar />
         <NextTopLoader />
         {children}
         <ScrollToTop />
         <Footer />
+        </AuthProvider>
       </body>
     </html>
   );
