@@ -144,3 +144,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS
 CORS_ALLOW_ALL_ORIGINS = True
+
+
+JUDGE0_API_URL = 'https://judge0-ce.p.rapidapi.com'
+JUDGE0_API_KEY = '322f8bd067msh2eac2e26e162eaap1287aajsn2b19e7705869'

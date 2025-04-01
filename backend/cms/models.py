@@ -157,19 +157,20 @@ class Submission(models.Model):
     ]
     
     LANGUAGE_CHOICES = [
-        ('Python', 'Python'), 
-        ('C++', 'C++'), 
-        ('Java', 'Java'),
-        ('JavaScript', 'JavaScript'),
-        ('Go', 'Go'),
-        ('Rust', 'Rust')
+        (109, 'Python 3.11.2'),
+        (100, 'Python 3.12.5'), 
+        (71, 'Python 3.8.1'),
+        (76, 'C++ (Clang 7.0.1)'),
+        (103, 'C (GCC 14.1.0)'),
+        (62, 'Java (OpenJDK 13.0.1)'),
+        (93, 'JavaScript (Node.js 18.15.0)'),
     ]
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='submissions')
     problem = models.ForeignKey(Problem, on_delete=models.CASCADE, related_name='submissions')
     contest = models.ForeignKey(Contest, on_delete=models.CASCADE, related_name='submissions')
     code = models.TextField()
-    language = models.CharField(max_length=50, choices=LANGUAGE_CHOICES)
+    language = models.IntegerField(choices=[(id, name) for name, id in LANGUAGE_CHOICES])  # Change to IntegerField
     submitted_at = models.DateTimeField(auto_now_add=True, db_index=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Pending', db_index=True)
     execution_time = models.FloatField(null=True, blank=True)  # in seconds

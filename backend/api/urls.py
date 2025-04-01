@@ -5,6 +5,10 @@ from .views import *
 router = DefaultRouter()
 
 router.register('auth', AuthenticationView, basename='auth')
+router.register('contest', ContestViewSet, basename='contest')
+router.register('participate', ContestParticipationView, basename='participate')
+router.register('problem', ProblemViewSet, basename='problem')
+router.register('submission', SubmissionViewSet, basename='submission')
 
 
 urlpatterns = [
