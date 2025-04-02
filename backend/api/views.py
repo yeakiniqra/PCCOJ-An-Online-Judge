@@ -198,20 +198,21 @@ class ProblemViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
         with transaction.atomic():
             for testcase in testcases:
                 judge0_data = {
-                    'source_code': base64.b64encode(submission.code.encode()).decode(),
+                    'source_code': submission.code,
                     'language_id': submission.language,
-                    'stdin': base64.b64encode(testcase.input.encode()).decode(),
-                    'expected_output': base64.b64encode(testcase.output.encode()).decode(),
+                    'stdin': testcase.input.replace("\\n", "\n"),
+                    'expected_output': testcase.output.strip(),
                     'cpu_time_limit': problem.time_limit,
                     'memory_limit': problem.memory_limit * 1024,
                 }
                 result = self._submit_to_judge0(judge0_data)
+                print("Judge0 Submission Data:", json.dumps(judge0_data, indent=2))
                 testcase_result = SubmissionTestcase.objects.create(
                     submission=submission, testcase=testcase,
                     status=result.get('status', {}).get('description', 'Runtime Error'),
                     execution_time=float(result.get('time', 0)) if result.get('time') else 0.0,
                     memory_used=result.get('memory') / 1024 if result.get('memory') else None,
-                    output=base64.b64decode(result.get('stdout', '')).decode() if result.get('stdout') else None
+                    output=result.get('stdout', '').strip() if result.get('stdout') else None
                 )
                 if testcase_result.status == 'Accepted':
                     total_points += testcase.points
@@ -237,8 +238,10 @@ class ProblemViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
                 result_response = requests.get(f"{judge0_url}/submissions/{token}", headers=headers)
                 result_response.raise_for_status()
                 result = result_response.json()
+                print("Judge0 Result Response:", result)
                 if result.get('status', {}).get('id') not in [1, 2]:
                     return result
+                print("Judge0 Submission Response:", result)
                 time.sleep(1)
             return {'status': {'description': 'System Error'}}
         except requests.exceptions.RequestException:
