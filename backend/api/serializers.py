@@ -293,7 +293,7 @@ class SubmissionTestcaseSerializer(serializers.ModelSerializer):
 
 
 class SubmissionCreateSerializer(serializers.ModelSerializer):
-    language = serializers.IntegerField() 
+    language = serializers.ChoiceField(choices=Submission.LANGUAGE_CHOICES) 
     class Meta:
         model = Submission
         fields = ['problem', 'code', 'language']

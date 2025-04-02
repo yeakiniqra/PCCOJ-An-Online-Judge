@@ -5,10 +5,21 @@ from .models import *
 admin.site.register(UserProfile)
 admin.site.register(Contest)
 admin.site.register(Problem)
-admin.site.register(Submission)
+# admin.site.register(Submission)
 admin.site.register(Announcement)
 admin.site.register(SubmissionTestcase)
 admin.site.register(Testcase)
 admin.site.register(Leaderboard)
 admin.site.register(ProblemTag)
 admin.site.register(ContestParticipation)
+
+class SubmissionAdmin(admin.ModelAdmin):
+    list_display = ('user', 'problem', 'contest', 'language_display', 'status', 'testcases_passed', 'testcases_total')
+
+    def language_display(self, obj):
+        return obj.get_language_display() 
+
+    language_display.admin_order_field = 'language'  
+    language_display.short_description = 'Language'  
+
+admin.site.register(Submission, SubmissionAdmin)

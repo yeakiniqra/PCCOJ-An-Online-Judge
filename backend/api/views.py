@@ -194,6 +194,7 @@ class ProblemViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
         testcases = problem.testcases.all()
         total_points, max_exec_time, max_mem_used = 0, 0, 0
         overall_status = 'Accepted'
+        testcases_passed = 0
 
         with transaction.atomic():
             for testcase in testcases:
@@ -216,6 +217,7 @@ class ProblemViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
                 )
                 if testcase_result.status == 'Accepted':
                     total_points += testcase.points
+                    testcases_passed += 1
                 else:
                     overall_status = testcase_result.status
                 max_exec_time = max(max_exec_time, testcase_result.execution_time or 0)
@@ -225,6 +227,7 @@ class ProblemViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
             submission.score = total_points
             submission.execution_time = max_exec_time
             submission.memory_used = max_mem_used
+            submission.testcases_passed = testcases_passed
             submission.save()
 
     def _submit_to_judge0(self, data):
