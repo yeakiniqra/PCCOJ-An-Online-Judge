@@ -3,9 +3,11 @@
 import { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
 import { CheckCircle2, ChevronRight, AlertCircle, Lock, LogIn } from "lucide-react"
+import useAuthStore from "@/store/AuthStore"
 
 
 export default function Login() {
+    const { login } = useAuthStore()
     const [fields, setFields] = useState([
         {
             id: "username",
@@ -96,32 +98,26 @@ export default function Login() {
         }
     }
 
-    const attemptLogin = () => {
-        setLoginStatus("processing")
+    const resetFields = () => {
+        setFields(fields.map(field => ({ ...field, completed: false, value: "" })));
+        setCurrentFieldIndex(0);
+    };
 
-        // Simulate API call with timeout
-        setTimeout(() => {
-            const username = fields[0].value
-            const password = fields[1].value
-
-            // This is a mock validation - in a real app, you would call your auth API
-            if (username === "demo" && password === "password") {
-                setLoginStatus("success")
-            } else {
-                setLoginStatus("error")
-                setErrorMessage("Invalid username or password. Please try again.")
-
-                // Reset fields for retry
-                const newFields = [...fields]
-                newFields.forEach((field) => {
-                    field.completed = false
-                    field.value = ""
-                })
-                setFields(newFields)
-                setCurrentFieldIndex(0)
-            }
-        }, 1500)
-    }
+    const attemptLogin = async () => {
+        setLoginStatus("processing");
+    
+        const username = fields[0].value;
+        const password = fields[1].value;
+    
+        try {
+            await login({ username, password });
+            setLoginStatus("success");
+        } catch (error) {
+            setLoginStatus("error");
+            setErrorMessage(error.message || "Invalid username or password. Please try again.");
+            resetFields();
+        }
+    };
 
     const getPromptText = (index) => {
         if (index === 0) {
@@ -233,7 +229,7 @@ export default function Login() {
                                     <span className="font-semibold">Login Successful</span>
                                 </div>
                                 <p className="text-sm">
-                                    Welcome back, {fields[0].value}! You are now being redirected to the dashboard.
+                                    Welcome back, {fields[0].value}! You have successfully logged in.
                                 </p>
                             </div>
 

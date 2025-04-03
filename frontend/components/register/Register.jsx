@@ -3,10 +3,10 @@
 import { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
 import { CheckCircle2, LinkIcon, ChevronRight } from "lucide-react"
-import { useAuth } from "@/context/useAuth"
+import useAuthStore from "@/store/AuthStore"
 
 export default function Register() {
-    const { register } = useAuth();
+    const { register } = useAuthStore()
     const [fields, setFields] = useState([
         {
             id: "email",
@@ -143,12 +143,16 @@ export default function Register() {
             return acc
         }, {})
 
-        const response = await register(formData)
+        try {
+            const response = await register(formData)
 
-        if (response.success) {
-            setRegistrationComplete(true)
-        } else {
-            setErrorMessage(response.message)
+            if (response?.message?.includes("User registered successfully")) {
+                setRegistrationComplete(true)
+            } else {
+                setErrorMessage(response.message || "Registration failed. Try again.")
+            }
+        } catch (error) {
+            setErrorMessage("Something went wrong. Please try again.")
         }
     }
 
