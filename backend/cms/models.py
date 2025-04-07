@@ -87,6 +87,9 @@ class ContestParticipation(models.Model):
             models.Index(fields=['user', 'contest']),
         ]
 
+    def __str__(self):
+        return f'{self.user.username} - {self.contest.title}'    
+
 # Problem Model 
 class Problem(models.Model):
     DIFFICULTY_CHOICES = [

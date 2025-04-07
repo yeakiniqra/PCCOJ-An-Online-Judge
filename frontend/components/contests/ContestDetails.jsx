@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import useFetchContest from "@/store/useFetchContest"
 import { Calendar, Clock, Timer, Users, Award, BookOpen, Star, Globe, ArrowLeft, PlayCircle } from "lucide-react"
+import useParticipateStore from "@/store/participateStore"
 
 
 export default function ContestDetails() {
@@ -15,11 +16,30 @@ export default function ContestDetails() {
     const [timeRemaining, setTimeRemaining] = useState("")
     const [progress, setProgress] = useState(0)
 
+    const {
+        participateInContest,
+        participation,
+        loading,
+        error,
+        success,
+    } = useParticipateStore();
+
     useEffect(() => {
         if (id) {
             fetchContestById(id); // Pass the correct ID to fetchContestById
         }
     }, [id, fetchContestById]);
+
+    useEffect(() => {
+        if (success) {
+            const timeout = setTimeout(() => {
+                router.push("/problem");
+            }, 1500); // 1.5s delay for UI feedback
+
+            return () => clearTimeout(timeout);
+        }
+    }, [success, router]);
+
 
     // Function to convert minutes to hours and minutes format
     const formatDuration = (minutes) => {
@@ -304,10 +324,36 @@ export default function ContestDetails() {
                                     className="w-full py-3 px-6 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg text-white font-medium flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300"
                                     whileHover={{ scale: 1.03 }}
                                     whileTap={{ scale: 0.97 }}
+                                    disabled={loading || success}
+                                    onClick={() => participateInContest(id)}
                                 >
-                                    <PlayCircle className="w-5 h-5" />
-                                    Participate Now
+                                    {loading ? (
+                                        <>
+                                            <svg className="animate-spin h-5 w-5 mr-2 text-white" viewBox="0 0 24 24" fill="none">
+                                                <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="4" strokeDasharray="60" />
+                                            </svg>
+                                            Joining...
+                                        </>
+                                    ) : success ? (
+                                        <>
+                                            <Star className="w-5 h-5" />
+                                            Participated!
+                                        </>
+                                    ) : (
+                                        <>
+                                            <PlayCircle className="w-5 h-5" />
+                                            Participate Now
+                                        </>
+                                    )}
                                 </motion.button>
+
+                                {/* Success / Error Messages */}
+                                {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+                                {success && (
+                                    <p className="text-green-400 text-sm mt-2">
+                                        You’ve successfully joined! Redirecting...
+                                    </p>
+                                )}
 
                                 <p className="text-gray-400 text-sm mt-3">
                                     Join {contestDetails.participants_count} other participants in this contest!

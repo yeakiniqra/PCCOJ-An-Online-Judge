@@ -23,3 +23,7 @@ class SubmissionAdmin(admin.ModelAdmin):
     language_display.short_description = 'Language'  
 
 admin.site.register(Submission, SubmissionAdmin)
+
+admin.site.index_title = "PCCOJ Admin"
+admin.site.site_header = "PCCOJ Admin Panel"
+admin.site.site_title = "PCCOJ Admin Panel"
