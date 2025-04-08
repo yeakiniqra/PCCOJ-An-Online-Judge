@@ -174,7 +174,7 @@ export default function ProblemDetails() {
   const { id } = useParams()
   const { problemDetails, fetchProblemById, loading, error } = useFetchProblemStore()
   const { submitCode, result, loading: submitting, error: submitError, resetSubmissionState } = useCodeSubmissionStore()
-   
+
   const router = useRouter()
   const [selectedLanguage, setSelectedLanguage] = useState(languageOptions[0])
   const [code, setCode] = useState(languageOptions[0].boilerplate)
@@ -374,7 +374,13 @@ export default function ProblemDetails() {
                             transition={{ duration: 0.2 }}
                             className="overflow-hidden"
                           >
-                            <div className="p-4 text-gray-300 whitespace-pre-wrap">{problemDetails.statement}</div>
+                            <div
+                              className="p-4 text-gray-300 whitespace-pre-wrap select-none"
+                              style={{ userSelect: "none" }}
+                              onContextMenu={(e) => e.preventDefault()}
+                            >
+                              {problemDetails.statement}
+                            </div>
                           </motion.div>
                         )}
                       </AnimatePresence>
@@ -405,7 +411,13 @@ export default function ProblemDetails() {
                             transition={{ duration: 0.2 }}
                             className="overflow-hidden"
                           >
-                            <div className="p-4 text-gray-300 whitespace-pre-wrap">{problemDetails.input_format}</div>
+                            <div
+                              className="p-4 text-gray-300 whitespace-pre-wrap select-none"
+                              style={{ userSelect: "none" }}
+                              onContextMenu={(e) => e.preventDefault()}
+                            >
+                              {problemDetails.input_format}
+                            </div>
                           </motion.div>
                         )}
                       </AnimatePresence>
@@ -436,7 +448,13 @@ export default function ProblemDetails() {
                             transition={{ duration: 0.2 }}
                             className="overflow-hidden"
                           >
-                            <div className="p-4 text-gray-300 whitespace-pre-wrap">{problemDetails.output_format}</div>
+                            <div
+                              className="p-4 text-gray-300 whitespace-pre-wrap select-none"
+                              style={{ userSelect: "none" }}
+                              onContextMenu={(e) => e.preventDefault()}
+                            >
+                              {problemDetails.output_format}
+                            </div>
                           </motion.div>
                         )}
                       </AnimatePresence>

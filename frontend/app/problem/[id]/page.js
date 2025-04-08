@@ -2,7 +2,7 @@ import ProblemDetails from "@/components/platform/ProblemDetails"
 
 
 export const metadata = {
-  title: "Problem Details",
+  title: "Submit your solution",
   description: "View and solve problems",
 }
 
