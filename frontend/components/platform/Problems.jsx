@@ -371,7 +371,7 @@ export default function Problems() {
 
                     <div className="flex flex-col items-center p-2 bg-gray-800/60 rounded-lg">
                       <CheckCircle className="h-4 w-4 text-green-400 mb-1" />
-                      <span className="text-sm font-medium text-white">{problem.acceptance_rate}%</span>
+                      <span className="text-sm font-medium text-white">{problem.acceptance_rate.toFixed(2)}%%</span>
                       <span className="text-xs text-gray-400">Acceptance</span>
                     </div>
                   </div>
