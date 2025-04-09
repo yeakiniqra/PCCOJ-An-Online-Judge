@@ -53,7 +53,7 @@ export default function Footer() {
               <FaFacebook className="w-5 h-5" />
             </Link>
 
-            <Link href="https://discord.gg/2dCwwDQT" className="mx-2 text-gray-300 transition-colors duration-300 hover:text-blue-500 sm:mt-2" aria-label="GitHub">
+            <Link href="https://discord.gg/nAdCbx2bgf" className="mx-2 text-gray-300 transition-colors duration-300 hover:text-blue-500 sm:mt-2" aria-label="GitHub">
               <FaDiscord className="w-5 h-5" />
             </Link>
           </div>
