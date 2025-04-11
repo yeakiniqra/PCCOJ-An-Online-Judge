@@ -58,7 +58,7 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center justify-center flex-1">
             <div className="flex space-x-8">
-              {['Problems', 'Challenge', 'Contests', 'Training', 'Contact'].map((item) => (
+              {['Practice', 'Challenge', 'Contests', 'Training', 'Contact'].map((item) => (
                 <Link
                   key={item}
                   href={`/${item.toLowerCase()}`}
@@ -141,7 +141,7 @@ const Navbar = () => {
       {/* Mobile menu */}
       <div className={`md:hidden ${isMenuOpen ? 'block' : 'hidden'}`}>
         <div className="px-2 pt-2 pb-3 space-y-1 bg-black/30 backdrop-blur-md">
-          {['Problems', 'Challenge', 'Contests', 'Training', 'Contact'].map((item) => (
+          {['Practice', 'Challenge', 'Contests', 'Training', 'Contact'].map((item) => (
             <Link
               key={item}
               href={`/${item.toLowerCase()}`}

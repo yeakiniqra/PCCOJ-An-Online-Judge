@@ -301,7 +301,7 @@ export default function ProblemDetails() {
             className="lg:w-1/2 w-full space-y-4 bg-gray-900/60 backdrop-blur-sm rounded-xl p-6 border border-gray-800"
           >
             <div className="flex justify-between items-center">
-              <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
+              <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-white">
                 {loading ? "Loading..." : problemDetails?.title}
               </h1>
 
