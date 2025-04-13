@@ -54,10 +54,17 @@ const useAuthStore = create(
         }
       },
 
-      updateUserProfile: async (updatedData) => {
+      updateUserProfile: async (formData) => {
         try {
-          const response = await apiClient.put("/auth/user_profile/", updatedData, {
-            headers: { Authorization: `Token ${get().token}` },
+          const response = await apiClient.put("/auth/user_profile/", formData, {
+            headers: { 
+              Authorization: `Token ${get().token}`,
+              // Don't manually set Content-Type when using FormData
+              // Let axios set it automatically with multipart/form-data and the proper boundary
+            },
+            // This is critical for file uploads
+            // Prevents axios from trying to JSON.stringify the FormData
+            transformRequest: [(data) => data]
           });
           set({ user: response.data });
         } catch (error) {

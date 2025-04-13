@@ -17,6 +17,7 @@ import json
 import base64
 import time
 from django.db.models import Count, Sum, Max
+from collections import defaultdict
 
 
 # Create your views here.
@@ -230,6 +231,10 @@ class ProblemViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
             submission.testcases_passed = testcases_passed
             submission.save()
 
+            # update user profile
+            user_profile = submission.user.userprofile
+            user_profile.update_stats()
+
     def _submit_to_judge0(self, data):
         judge0_url = settings.JUDGE0_API_URL
         headers = {'Content-Type': 'application/json', 'X-RapidAPI-Key': settings.JUDGE0_API_KEY}
@@ -298,19 +303,72 @@ class SubmissionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewse
     def leaderboard(self, request):
         problem_id = request.query_params.get('problem')
         contest_id = request.query_params.get('contest')
+
         if not problem_id and not contest_id:
             return Response({"error": "Either problem or contest parameter is required."}, status=status.HTTP_400_BAD_REQUEST)
-        queryset = Submission.objects.all()
+
+        # Filter base queryset
+        submissions = Submission.objects.select_related("user", "problem").all()
         if problem_id:
-            queryset = queryset.filter(problem_id=problem_id)
-            leaderboard = queryset.values('user__username').annotate(
-                best_score=Max('score'), best_time=Max('execution_time'), submission_time=Max('submitted_at')
-            ).order_by('-best_score', 'best_time', 'submission_time')
+            submissions = submissions.filter(problem_id=problem_id)
         else:
-            queryset = queryset.filter(problem__contest_id=contest_id)
-            leaderboard = queryset.values('user__username').annotate(
-                total_score=Sum('score'), submission_count=Count('id')
-            ).order_by('-total_score')
+            submissions = submissions.filter(problem__contest_id=contest_id)
+
+        leaderboard_data = defaultdict(lambda: {
+            "username": "",
+            "total_score": 0,
+            "total_submissions": 0,
+            "accepted_submissions": 0,
+            "wrong_submissions": 0,
+            "problems_solved": 0,
+            "total_time": 0.0,
+            "attempts_per_problem": {},
+        })
+
+        for sub in submissions.order_by('submitted_at'):
+            user = sub.user.username
+            problem = sub.problem_id
+            key = user
+
+            data = leaderboard_data[key]
+            data["username"] = user
+            data["total_score"] += sub.score
+            data["total_submissions"] += 1
+
+            if sub.status == "Accepted":
+                data["accepted_submissions"] += 1
+
+                # First accepted submission for a problem
+                if problem not in data["attempts_per_problem"]:
+                    data["problems_solved"] += 1
+                    data["total_time"] += sub.execution_time or 0
+            else:
+                data["wrong_submissions"] += 1
+
+            # Track attempts per problem until accepted
+            if problem not in data["attempts_per_problem"]:
+                data["attempts_per_problem"][problem] = {
+                    "attempts": 1,
+                    "solved": sub.status == "Accepted"
+                }
+            else:
+                if not data["attempts_per_problem"][problem]["solved"]:
+                    data["attempts_per_problem"][problem]["attempts"] += 1
+                    if sub.status == "Accepted":
+                        data["attempts_per_problem"][problem]["solved"] = True
+
+        # Format leaderboard
+        leaderboard = []
+        for data in leaderboard_data.values():
+            total_attempts = sum(p["attempts"] for p in data["attempts_per_problem"].values())
+            data["average_attempts_per_problem"] = (
+                total_attempts / data["problems_solved"] if data["problems_solved"] else 0
+            )
+            leaderboard.append(data)
+
+        # Sort leaderboard
+        leaderboard.sort(key=lambda x: (-x["total_score"], -x["accepted_submissions"], x["total_time"]))
+
         return Response(leaderboard)
 
     

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter,useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
 import useFetchContest from "@/store/useFetchContest"
 import { Calendar, Clock, Timer, Users, Award, BookOpen, Star, Globe, ArrowLeft, PlayCircle } from "lucide-react"
@@ -10,6 +10,7 @@ import useParticipateStore from "@/store/participateStore"
 
 export default function ContestDetails() {
     const { id } = useParams()
+    const contestId = id;
     const router = useRouter()
     const { contestDetails, fetchContestById, contestDetailsLoading } = useFetchContest();
     const [contest, setContest] = useState(null)
@@ -33,7 +34,7 @@ export default function ContestDetails() {
     useEffect(() => {
         if (success) {
             const timeout = setTimeout(() => {
-                router.push("/problem");
+                router.push(`/problem?contest=${contestId}`);
             }, 1500); // 1.5s delay for UI feedback
 
             return () => clearTimeout(timeout);

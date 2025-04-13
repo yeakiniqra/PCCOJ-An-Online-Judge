@@ -146,6 +146,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
         
         return instance
     
+    def to_representation(self, instance):
+        instance.update_stats()  # auto-update before showing
+        return super().to_representation(instance)
+    
 
 # Contest List Serializer
 class ContestListSerializer(serializers.ModelSerializer):

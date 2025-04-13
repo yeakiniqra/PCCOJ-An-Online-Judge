@@ -81,23 +81,34 @@ export default function Profile() {
     }
 
     const handleSubmit = async (e) => {
-        e.preventDefault()
-        setIsLoading(true)
-        setMessage({ text: "", type: "" })
+        e.preventDefault();
+        setIsLoading(true);
+        setMessage({ text: "", type: "" });
 
         try {
-            // In a real implementation, you would handle file upload here
-            // For this example, we'll just simulate a successful update
-            await updateUserProfile(formData)
-            setIsEditing(false)
-            setMessage({ text: "Profile updated successfully!", type: "success" })
+            // Create a FormData object for file uploads
+            const formDataToSend = new FormData();
+
+            // Add the mobile number
+            formDataToSend.append('mobile', formData.mobile);
+
+            // Only append the file if it's a new file (not a string URL from the server)
+            if (formData.profile_picture instanceof File) {
+                formDataToSend.append('profile_picture', formData.profile_picture);
+            }
+
+            // Pass the FormData object to the update function
+            await updateUserProfile(formDataToSend);
+
+            setIsEditing(false);
+            setMessage({ text: "Profile updated successfully!", type: "success" });
         } catch (error) {
-            setMessage({ text: "Failed to update profile. Please try again.", type: "error" })
-            console.error("Error updating profile:", error)
+            setMessage({ text: "Failed to update profile. Please try again.", type: "error" });
+            console.error("Error updating profile:", error);
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
-    }
+    };
 
     const cancelEdit = () => {
         setIsEditing(false)
@@ -167,8 +178,8 @@ export default function Profile() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
                         className={`mb-6 p-4 rounded-lg ${message.type === "success"
-                                ? "bg-green-900/60 text-green-200 border border-green-700"
-                                : "bg-red-900/60 text-red-200 border border-red-700"
+                            ? "bg-green-900/60 text-green-200 border border-green-700"
+                            : "bg-red-900/60 text-red-200 border border-red-700"
                             }`}
                     >
                         <p className="flex items-center">
@@ -203,7 +214,9 @@ export default function Profile() {
                                             />
                                         ) : user.profile_picture ? (
                                             <Image
-                                                src={user.profile_picture || "/placeholder.svg"}
+                                                src={user.profile_picture.startsWith('http')
+                                                    ? user.profile_picture
+                                                    : `${process.env.NEXT_PUBLIC_API_URL}${user.profile_picture}`}
                                                 alt="Profile"
                                                 fill
                                                 className="object-cover"
