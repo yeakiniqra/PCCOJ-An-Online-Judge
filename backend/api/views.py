@@ -372,3 +372,14 @@ class SubmissionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewse
         return Response(leaderboard)
 
     
+# class PracticeProblemViewSet(mixins.ListModelMixin,
+#                               mixins.RetrieveModelMixin,
+#                               viewsets.GenericViewSet):
+#     """
+#     Viewset for Practice Problems:
+#     - List (public)
+#     - Detail by slug (authenticated only)
+#     """
+#     lookup_field = 'slug'  
+
+   

@@ -301,3 +301,77 @@ class Announcement(models.Model):
         
     def __str__(self):
         return self.title
+    
+
+class PracticeProblem(models.Model):
+    DIFFICULTY_CHOICES = [
+        ('Easy', 'Easy'), 
+        ('Medium', 'Medium'), 
+        ('Hard', 'Hard'),
+        ('Very Hard', 'Very Hard')
+    ]
+    
+    title = models.CharField(max_length=255, db_index=True)
+    slug = models.SlugField(max_length=255, unique=True)
+    statement = models.TextField()
+    input_format = models.TextField()
+    output_format = models.TextField()
+    constraints = models.TextField()
+    sample_input = models.TextField()
+    sample_output = models.TextField()
+    explanation = models.TextField(blank=True, null=True)
+    time_limit = models.FloatField(default=1.0)
+    memory_limit = models.IntegerField(default=256)
+    difficulty = models.CharField(max_length=50, choices=DIFFICULTY_CHOICES, db_index=True)
+    tags = models.ManyToManyField('ProblemTag', related_name='practice_problems')
+    points = models.IntegerField(default=100)
+    editorial = models.TextField(blank=True, null=True, help_text="Solution explanation and approach")
+    is_featured = models.BooleanField(default=False, help_text="Featured problems appear on the homepage")
+    view_count = models.PositiveIntegerField(default=0, help_text="Number of times this problem has been viewed")
+    solve_count = models.PositiveIntegerField(default=0, help_text="Number of unique users who solved this problem")
+    attempt_count = models.PositiveIntegerField(default=0, help_text="Number of unique users who attempted this problem")
+    is_visible = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['difficulty', 'points']),
+            models.Index(fields=['is_visible']),
+            models.Index(fields=['is_featured']),
+            models.Index(fields=['view_count']),
+            models.Index(fields=['solve_count']),
+            models.Index(fields=['attempt_count']),
+        ]
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+    
+    @property
+    def submission_count(self):
+        return self.submissions.count()
+    
+    @property
+    def acceptance_rate(self):
+        total = self.submissions.count()
+        if total == 0:
+            return 0
+        accepted = self.submissions.filter(status='Accepted').count()
+        return (accepted / total) * 100
+    
+    def update_stats(self):
+        """Update problem statistics (solve_count, attempt_count)"""
+        # Number of distinct users who submitted to this problem
+        self.attempt_count = self.submissions.values('user').distinct().count()
+        
+        # Number of distinct users who solved this problem
+        self.solve_count = self.submissions.filter(status='Accepted').values('user').distinct().count()
+        
+        self.save(update_fields=['attempt_count', 'solve_count'])
+    
+    def increment_view_count(self):
+        """Increment the view count for this problem"""
+        self.view_count += 1
+        self.save(update_fields=['view_count'])
