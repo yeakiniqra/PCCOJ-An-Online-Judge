@@ -16,7 +16,8 @@ import requests
 import json
 import base64
 import time
-from django.db.models import Count, Sum, Max
+from django.db.models import Count, Sum, Max, Q, FloatField, ExpressionWrapper
+from django.db.models.functions import Coalesce
 from collections import defaultdict
 
 
@@ -372,14 +373,74 @@ class SubmissionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewse
         return Response(leaderboard)
 
     
-# class PracticeProblemViewSet(mixins.ListModelMixin,
-#                               mixins.RetrieveModelMixin,
-#                               viewsets.GenericViewSet):
-#     """
-#     Viewset for Practice Problems:
-#     - List (public)
-#     - Detail by slug (authenticated only)
-#     """
-#     lookup_field = 'slug'  
+class PracticeProblemViewSet(mixins.ListModelMixin,
+                             mixins.RetrieveModelMixin,
+                             viewsets.GenericViewSet):
+    """
+    Viewset for Practice Problems:
+    - List (public)
+    - Detail by slug (authenticated only)
+    """
+    queryset = PracticeProblem.objects.filter(is_visible=True)
+    lookup_field = 'slug'
+
+    def get_permissions(self):
+        if self.action == 'list':
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return PracticeProblemDetailSerializer
+        return PracticeProblemListSerializer
+
+    @action(detail=True, methods=['get'])
+    def submissions(self, request, slug=None):
+        """Return current user's submissions for this practice problem"""
+        problem = self.get_object()
+        submissions = PracticeSubmission.objects.filter(
+            user=request.user,
+            problem=problem
+        ).order_by('-submitted_at')
+
+        page = self.paginate_queryset(submissions)
+        if page is not None:
+            serializer = PracticeSubmissionListSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = PracticeSubmissionListSerializer(submissions, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def tags(self, request):
+        """Return all tags used in visible practice problems"""
+        tags = ProblemTag.objects.filter(practice_problems__is_visible=True).distinct()
+        serializer = ProblemTagSerializer(tags, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def stats(self, request):
+        """Return user's practice problem statistics"""
+        total_problems = self.queryset.count()
+        solved = 0
+        attempted = 0
+
+        if request.user.is_authenticated:
+            solved = PracticeProblem.objects.filter(
+                submissions__user=request.user,
+                submissions__status='Accepted',
+                is_visible=True
+            ).distinct().count()
+
+            attempted = PracticeProblem.objects.filter(
+                submissions__user=request.user,
+                is_visible=True
+            ).distinct().count()
+
+        return Response({
+            'total': total_problems,
+            'solved': solved,
+            'attempted': attempted
+        })  
 
    

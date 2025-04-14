@@ -375,3 +375,46 @@ class PracticeProblem(models.Model):
         """Increment the view count for this problem"""
         self.view_count += 1
         self.save(update_fields=['view_count'])
+
+
+class PracticeSubmission(models.Model):
+    """Similar to your regular Submission model but for practice problems"""
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'), 
+        ('Accepted', 'Accepted'), 
+        ('Wrong Answer', 'Wrong Answer'), 
+        ('Runtime Error', 'Runtime Error'), 
+        ('Time Limit Exceeded', 'Time Limit Exceeded'),
+        ('Compilation Error', 'Compilation Error'),
+        ('Memory Limit Exceeded', 'Memory Limit Exceeded')
+    ]
+
+    LANGUAGE_CHOICES = [
+        (109, 'Python 3.11.2'),
+        (100, 'Python 3.12.5'), 
+        (71, 'Python 3.8.1'),
+        (76, 'C++ (Clang 7.0.1)'),
+        (103, 'C (GCC 14.1.0)'),
+        (62, 'Java (OpenJDK 13.0.1)'),
+        (93, 'JavaScript (Node.js 18.15.0)'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='practice_submissions')
+    problem = models.ForeignKey(PracticeProblem, on_delete=models.CASCADE, related_name='submissions')
+    code = models.TextField()
+    language = models.IntegerField(choices=[(id, name) for id, name in LANGUAGE_CHOICES])
+    submitted_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Pending', db_index=True)
+    execution_time = models.FloatField(null=True, blank=True)  # in seconds
+    memory_used = models.FloatField(null=True, blank=True)  # in MB
+    penalty = models.IntegerField(default=0)  # Time penalty in seconds
+    
+    class Meta:
+        ordering = ['-submitted_at']
+        indexes = [
+            models.Index(fields=['user', 'problem']),
+            models.Index(fields=['status', 'submitted_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.problem.title}"

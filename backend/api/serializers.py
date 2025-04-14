@@ -441,4 +441,145 @@ class SubmissionResultUpdateSerializer(serializers.ModelSerializer):
     
 
 
-# Practice Problem Serializer
+# Practice Problem Serializers
+class PracticeProblemListSerializer(serializers.ModelSerializer):
+    tags = ProblemTagSerializer(many=True, read_only=True)
+    submission_count = serializers.IntegerField(read_only=True)
+    acceptance_rate = serializers.FloatField(read_only=True)
+
+    class Meta:
+        model = PracticeProblem
+        fields = [
+            'id', 'title', 'slug', 'difficulty', 'points', 'tags',
+            'submission_count', 'acceptance_rate', 'solve_count', 'attempt_count'
+        ]
+
+
+class PracticeProblemDetailSerializer(serializers.ModelSerializer):
+    tags = ProblemTagSerializer(many=True, read_only=True)
+    submission_count = serializers.IntegerField(read_only=True)
+    acceptance_rate = serializers.FloatField(read_only=True)
+    formatted_acceptance_rate = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PracticeProblem
+        fields = [
+            'id', 'title', 'slug', 'statement', 'input_format', 'output_format',
+            'constraints', 'sample_input', 'sample_output', 'explanation',
+            'time_limit', 'memory_limit', 'difficulty', 'tags', 'points',
+            'editorial', 'submission_count', 'acceptance_rate', 'formatted_acceptance_rate',
+            'solve_count', 'attempt_count', 'view_count'
+        ]
+
+    def get_formatted_acceptance_rate(self, obj):
+        """Return formatted acceptance rate with 2 decimal places"""
+        if hasattr(obj, 'acceptance_rate'):
+            return f"{obj.acceptance_rate:.2f}%"
+        return "0.00%"
+
+    def retrieve(self, instance, *args, **kwargs):
+        # Increment view count when problem is viewed
+        instance.increment_view_count()
+        return super().retrieve(instance, *args, **kwargs)
+
+
+# Practice Submission Serializers
+class PracticeSubmissionCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating new practice submissions"""
+    language = serializers.ChoiceField(choices=PracticeSubmission.LANGUAGE_CHOICES)
+    
+    class Meta:
+        model = PracticeSubmission
+        fields = ['problem', 'code', 'language']
+    
+    def validate(self, data):
+        """Validate submission data"""
+        # Check if language is valid
+        if data['language'] not in dict(PracticeSubmission.LANGUAGE_CHOICES):
+            raise serializers.ValidationError({"language": "Invalid language selection."})
+        
+        # Check if problem exists and is visible
+        problem = data['problem']
+        if not problem.is_visible:
+            raise serializers.ValidationError({"problem": "This problem is not available."})
+        
+        # Check if code is not empty
+        if not data['code'] or not data['code'].strip():
+            raise serializers.ValidationError({"code": "Solution code cannot be empty."})
+            
+        return data
+    
+    def create(self, validated_data):
+        """Create a new submission"""
+        # Add the current user from context
+        validated_data['user'] = self.context['request'].user
+        validated_data['status'] = 'Pending'
+        
+        submission = PracticeSubmission.objects.create(**validated_data)
+        
+        # Update problem stats asynchronously
+        # You might want to use a task queue like Cellar or Django Q here
+        submission.problem.update_stats()
+        
+        return submission
+
+
+class PracticeSubmissionDetailSerializer(serializers.ModelSerializer):
+    """Detailed view of a practice submission"""
+    problem_title = serializers.CharField(source='problem.title', read_only=True)
+    language_display = serializers.SerializerMethodField()
+    username = serializers.CharField(source='user.username', read_only=True)
+    
+    class Meta:
+        model = PracticeSubmission
+        fields = [
+            'id', 'problem', 'problem_title', 'username', 'code', 'language', 
+            'language_display', 'status', 'submitted_at', 'execution_time', 
+            'memory_used', 'penalty'
+        ]
+        read_only_fields = ['status', 'submitted_at', 'execution_time', 'memory_used', 'penalty']
+    
+    def get_language_display(self, obj):
+        """Return language name instead of ID"""
+        return dict(PracticeSubmission.LANGUAGE_CHOICES).get(obj.language, 'Unknown')
+
+
+class PracticeSubmissionListSerializer(serializers.ModelSerializer):
+    """List view of a user's submissions"""
+    problem_title = serializers.CharField(source='problem.title', read_only=True)
+    language_display = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = PracticeSubmission
+        fields = [
+            'id', 'problem', 'problem_title', 'language', 'language_display',
+            'status', 'submitted_at', 'execution_time', 'memory_used'
+        ]
+        read_only_fields = ['status', 'submitted_at', 'execution_time', 'memory_used']
+    
+    def get_language_display(self, obj):
+        return dict(PracticeSubmission.LANGUAGE_CHOICES).get(obj.language, 'Unknown')
+
+
+class PracticeSubmissionResultUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating submission results after judging (internal use)"""
+    
+    class Meta:
+        model = PracticeSubmission
+        fields = [
+            'status', 'execution_time', 'memory_used', 'penalty'
+        ]
+        
+    def update(self, instance, validated_data):
+        """Update submission with results from judge"""
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
+        instance.save()
+        
+        # Update problem statistics after judging
+        instance.problem.update_stats()
+        
+        return instance
+
+
