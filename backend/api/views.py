@@ -19,6 +19,8 @@ import time
 from django.db.models import Count, Sum, Max, Q, FloatField, ExpressionWrapper
 from django.db.models.functions import Coalesce
 from collections import defaultdict
+import requests, json, time
+
 
 
 # Create your views here.
@@ -371,8 +373,9 @@ class SubmissionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewse
         leaderboard.sort(key=lambda x: (-x["total_score"], -x["accepted_submissions"], x["total_time"]))
 
         return Response(leaderboard)
-
     
+    
+# Practice Problem API's
 class PracticeProblemViewSet(mixins.ListModelMixin,
                              mixins.RetrieveModelMixin,
                              viewsets.GenericViewSet):
@@ -394,6 +397,16 @@ class PracticeProblemViewSet(mixins.ListModelMixin,
             return PracticeProblemDetailSerializer
         return PracticeProblemListSerializer
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # Increment view count and save
+        instance.view_count = instance.view_count + 1 if instance.view_count else 1
+        instance.save(update_fields=["view_count"])
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
     @action(detail=True, methods=['get'])
     def submissions(self, request, slug=None):
         """Return current user's submissions for this practice problem"""
@@ -405,10 +418,10 @@ class PracticeProblemViewSet(mixins.ListModelMixin,
 
         page = self.paginate_queryset(submissions)
         if page is not None:
-            serializer = PracticeSubmissionListSerializer(page, many=True)
+            serializer = PracticeSubmissionSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = PracticeSubmissionListSerializer(submissions, many=True)
+        serializer = PracticeSubmissionSerializer(submissions, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
@@ -441,6 +454,103 @@ class PracticeProblemViewSet(mixins.ListModelMixin,
             'total': total_problems,
             'solved': solved,
             'attempted': attempted
-        })  
+        })
 
-   
+# Practice Submission Views
+class PracticeSubmissionViewSet(mixins.ListModelMixin,
+                                mixins.RetrieveModelMixin,
+                                viewsets.GenericViewSet):
+    queryset = PracticeSubmission.objects.all().select_related('user', 'problem').prefetch_related('testcases__testcase')
+    serializer_class = PracticeSubmissionSerializer
+
+    def get_serializer_class(self):
+        if self.action == 'submit':
+            return PracticeSubmissionCreateSerializer
+        return PracticeSubmissionSerializer
+
+    @action(detail=True, methods=['POST'])
+    def submit(self, request, pk=None):
+        """
+        Submit a solution to a practice problem.
+        """
+        problem = get_object_or_404(PracticeProblem, pk=pk)
+        serializer = self.get_serializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            submission = serializer.save()
+            self._process_submission(submission)
+            return Response(PracticeSubmissionSerializer(submission, context={'request': request}).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def _process_submission(self, submission):
+        problem = submission.problem
+        testcases = problem.testcases.all()
+        overall_status = 'Accepted'
+        max_exec_time, max_mem_used = 0, 0
+        total_penalty = 0
+
+        with transaction.atomic():
+            for testcase in testcases:
+                judge0_data = {
+                    'source_code': submission.code,
+                    'language_id': submission.language,
+                    'stdin': testcase.input.replace("\\n", "\n"),
+                    'expected_output': testcase.output.strip(),
+                    'cpu_time_limit': problem.time_limit,
+                    'memory_limit': problem.memory_limit * 1024,
+                }
+                result = self._submit_to_judge0(judge0_data)
+                
+                status_description = result.get('status', {}).get('description', 'Runtime Error')
+                exec_time = float(result.get('time', 0)) if result.get('time') else 0.0
+                mem_used = result.get('memory', 0) / 1024 if result.get('memory') else 0.0
+                output = result.get('stdout', '').strip() if result.get('stdout') else ''
+
+                PracticeSubmissionTestcase.objects.create(
+                    submission=submission,
+                    testcase=testcase,
+                    status=status_description,
+                    execution_time=exec_time,
+                    memory_used=mem_used,
+                    output=output
+                )
+
+                if status_description != 'Accepted':
+                    overall_status = status_description
+                    total_penalty += 5  # 5 seconds penalty for failed testcase (customize as needed)
+
+                max_exec_time = max(max_exec_time, exec_time)
+                max_mem_used = max(max_mem_used, mem_used)
+
+            submission.status = overall_status
+            submission.execution_time = max_exec_time
+            submission.memory_used = max_mem_used
+            submission.penalty = total_penalty
+            submission.save()
+
+            # Optionally update user profile stats here
+            if hasattr(submission.user, 'profile'):
+                submission.user.profile.update_stats()
+
+    def _submit_to_judge0(self, data):
+        judge0_url = settings.JUDGE0_API_URL
+        headers = {
+            'Content-Type': 'application/json',
+            'X-RapidAPI-Key': settings.JUDGE0_API_KEY
+        }
+        try:
+            create_response = requests.post(f"{judge0_url}/submissions", headers=headers, data=json.dumps(data))
+            create_response.raise_for_status()
+            token = create_response.json().get('token')
+
+            for _ in range(10):
+                result_response = requests.get(f"{judge0_url}/submissions/{token}", headers=headers)
+                result_response.raise_for_status()
+                result = result_response.json()
+
+                if result.get('status', {}).get('id') not in [1, 2]:  # In Queue / Processing
+                    return result
+                time.sleep(1)
+
+            return {'status': {'description': 'System Error'}}
+        except requests.exceptions.RequestException:
+            return {'status': {'description': 'API Error'}}

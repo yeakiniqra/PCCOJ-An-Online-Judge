@@ -10,6 +10,7 @@ router.register('participate', ContestParticipationView, basename='participate')
 router.register('problem', ProblemViewSet, basename='problem')
 router.register('submission', SubmissionViewSet, basename='submission')
 router.register('practice', PracticeProblemViewSet, basename='practice-problems')
+router.register('practicesubmit', PracticeSubmissionViewSet, basename='practice-submit')
 
 
 urlpatterns = [
