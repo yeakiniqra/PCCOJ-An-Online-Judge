@@ -1,0 +1,304 @@
+{% extends 'sidebar.html' %}
+
+{% block title %}Admin-PCCOJ | Dashboard{% endblock %}
+
+{% block content %}
+<div class="px-4 py-6">
+    <!-- Dashboard Header -->
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
+            <p class="text-gray-600 mt-1">Welcome back to the PCCOJ admin panel</p>
+        </div>
+        <div class="mt-4 lg:mt-0 flex gap-3">
+            <button class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <i class="fas fa-plus"></i> New Problem
+            </button>
+            <button class="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                <i class="fas fa-trophy"></i> New Contest
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <!-- Users Card -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm text-gray-500 font-medium">Total Users</p>
+                    <h3 class="text-2xl font-bold mt-1">{{ total_users }}</h3>
+                    <p class="text-xs text-green-600 mt-2">
+                        <span class="font-medium">+{{ new_users_today }}</span> new today
+                    </p>
+                </div>
+                <div class="p-3 bg-blue-100 rounded-full">
+                    <i class="fas fa-users text-blue-600"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Problems Card -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm text-gray-500 font-medium">Practice Problems</p>
+                    <h3 class="text-2xl font-bold mt-1">{{ total_practice_problems }}</h3>
+                    <p class="text-xs text-purple-600 mt-2">
+                        <span class="font-medium">{{ featured_problems }}</span> featured problems
+                    </p>
+                </div>
+                <div class="p-3 bg-purple-100 rounded-full">
+                    <i class="fas fa-puzzle-piece text-purple-600"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Submissions Card -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm text-gray-500 font-medium">Total Submissions</p>
+                    <h3 class="text-2xl font-bold mt-1">{{ total_submissions }}</h3>
+                    <p class="text-xs text-green-600 mt-2">
+                        <span class="font-medium">{{ accepted_submissions }}</span> accepted
+                    </p>
+                </div>
+                <div class="p-3 bg-green-100 rounded-full">
+                    <i class="fas fa-code text-green-600"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contests Card -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm text-gray-500 font-medium">Contests</p>
+                    <h3 class="text-2xl font-bold mt-1">{{ total_contests }}</h3>
+                    <p class="text-xs text-orange-600 mt-2">
+                        <span class="font-medium">{{ ongoing_contests }}</span> ongoing, 
+                        <span class="font-medium">{{ upcoming_contests }}</span> upcoming
+                    </p>
+                </div>
+                <div class="p-3 bg-orange-100 rounded-full">
+                    <i class="fas fa-trophy text-orange-600"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add the hidden JSON data for charts -->
+    <script type="application/json" id="submission-data">
+        {{ submission_by_status|safe }}
+    </script>
+    <script type="application/json" id="difficulty-data">
+        {{ problems_by_difficulty|safe }}
+    </script>
+    
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Submissions Chart -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+            <h4 class="font-medium mb-4">Submission Statistics</h4>
+            <canvas id="submissionsChart" height="150"></canvas>
+        </div>
+        
+        <!-- Problem Difficulty Chart -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+            <h4 class="font-medium mb-4">Problem Difficulty Distribution</h4>
+            <canvas id="difficultyChart" height="150"></canvas>
+        </div>
+    </div>
+    
+    <!-- Recent Activity and Data Tables -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Recent Activity -->
+        <div class="lg:col-span-1 bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h4 class="font-medium">Recent Activity</h4>
+                <a href="#" class="text-sm text-blue-600 hover:underline">View all</a>
+            </div>
+            
+            <div class="space-y-4">
+                {% for activity in recent_activities %}
+                <div class="flex items-start gap-3">
+                    <div class="mt-1 p-2 
+                        {% if activity.status == 'Accepted' %}bg-green-100{% else %}bg-red-100{% endif %} 
+                        rounded-full">
+                        <i class="fas {% if activity.status == 'Accepted' %}fa-check text-green-600{% else %}fa-times text-red-600{% endif %} text-xs"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm">
+                            <span class="font-medium">{{ activity.user.username }}</span> 
+                            submitted a solution to
+                            <span class="font-medium">{{ activity.problem.title }}</span>
+                        </p>
+                        <p class="text-xs text-gray-500">{{ activity.submitted_at|timesince }} ago</p>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-gray-500 text-sm">No recent activity</p>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Recent Submissions -->
+        <div class="lg:col-span-2 bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h4 class="font-medium">Recent Submissions</h4>
+                <a href="#" class="text-sm text-blue-600 hover:underline">View all</a>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Problem</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Language</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for submission in recent_submissions %}
+                        <tr>
+                            <td class="px-4 py-2 whitespace-nowrap">
+                                <div class="text-sm font-medium">{{ submission.user.username }}</div>
+                            </td>
+                            <td class="px-4 py-2 whitespace-nowrap">
+                                <div class="text-sm">{{ submission.problem.title|truncatechars:30 }}</div>
+                            </td>
+                            <td class="px-4 py-2 whitespace-nowrap">
+                                <div class="text-sm">{{ submission.get_language_display }}</div>
+                            </td>
+                            <td class="px-4 py-2 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full
+                                    {% if submission.status == 'Accepted' %}
+                                    bg-green-100 text-green-800
+                                    {% elif submission.status == 'Pending' %}
+                                    bg-yellow-100 text-yellow-800
+                                    {% else %}
+                                    bg-red-100 text-red-800
+                                    {% endif %}">
+                                    {{ submission.status }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                {{ submission.submitted_at|timesince }} ago
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-4 py-4 text-sm text-center text-gray-500">
+                                No submissions yet
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js for visualizations -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Safely parse JSON data with error handling
+    function safeJSONParse(elementId, fallbackData) {
+        try {
+            const element = document.getElementById(elementId);
+            if (!element) return fallbackData;
+            
+            const data = JSON.parse(element.textContent || element.innerText);
+            return Array.isArray(data) ? data : fallbackData;
+        } catch (e) {
+            console.error(`Error parsing data from ${elementId}:`, e);
+            return fallbackData;
+        }
+    }
+
+    // Get chart data with fallbacks
+    const submissionData = safeJSONParse('submission-data', [0, 0, 0, 0, 0]);
+    const difficultyData = safeJSONParse('difficulty-data', [0, 0, 0, 0]);
+
+    // Submission Status Chart
+    const submissionsCtx = document.getElementById('submissionsChart');
+    if (submissionsCtx) {
+        const submissionsChart = new Chart(submissionsCtx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Accepted', 'Wrong Answer', 'Time Limit Exceeded', 'Runtime Error', 'Compilation Error'],
+                datasets: [{
+                    data: submissionData,
+                    backgroundColor: [
+                        '#10b981',
+                        '#ef4444',
+                        '#f59e0b',
+                        '#6366f1',
+                        '#8b5cf6'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+    }
+
+    // Problem Difficulty Chart
+    const difficultyCtx = document.getElementById('difficultyChart');
+    if (difficultyCtx) {
+        const difficultyChart = new Chart(difficultyCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['Easy', 'Medium', 'Hard', 'Very Hard'],
+                datasets: [{
+                    label: 'Number of Problems',
+                    data: difficultyData,
+                    backgroundColor: [
+                        '#10b981',
+                        '#3b82f6',
+                        '#f97316',
+                        '#ef4444'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            display: true,
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

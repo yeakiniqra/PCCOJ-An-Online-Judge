@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Admin-PCCOJ | Login</title>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        violet: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            300: '#c4b5fd',
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95',
+                            950: '#2e1065',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: "Geist", sans-serif;
+            background-color: rgb(2, 6, 23);
+        }
+
+        .form-input:focus {
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Background Pattern -->
+    <div class="fixed inset-0 bg-slate-950">
+        <div class="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
+    </div>
+
+    <div class="min-h-screen relative z-10 flex items-center justify-center px-4 py-12">
+        <div class="w-full max-w-md">
+            <!-- Login Card -->
+            <div class="relative overflow-hidden rounded-2xl bg-gray-900/80 backdrop-blur-sm p-8 shadow-xl border border-gray-800">
+                <!-- Purple Glow Effect -->
+                <div class="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-600/30 blur-3xl"></div>
+                <div class="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-violet-800/30 blur-3xl"></div>
+                
+                <!-- Card Content -->
+                <div class="relative z-10">
+                    <div class="text-center mb-8">
+                        <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-violet-900/30 backdrop-blur-sm border border-violet-700/50">
+                            <img src="https://i.postimg.cc/vZrdKb4T/pcc-logo.png" alt="PCCOJ Logo" class="w-16 h-16 rounded-full">
+                        </div>
+                        <h1 class="text-2xl font-bold bg-gradient-to-r from-violet-400 to-purple-300 bg-clip-text text-transparent">Admin Login</h1>
+                        <p class="mt-2 text-gray-400">Welcome back! Please enter your credentials</p>
+                    </div>
+                    
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="mb-4 rounded bg-red-900/50 p-3 text-sm text-red-200 border border-red-800">
+                                <p class="flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i> {{ message }}</p>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" class="space-y-6">
+                        {% csrf_token %}
+                        <!-- Username Field -->
+                        <div>
+                            <label for="username" class="mb-2 block text-sm font-medium text-gray-300">
+                                <i class="fas fa-user mr-2 text-violet-400"></i>Username
+                            </label>
+                            <div class="relative">
+                                <input type="text" id="username" name="username" required
+                                    class="form-input w-full rounded-lg border border-gray-700 bg-gray-800/50 px-4 py-3 text-white placeholder-gray-500 focus:border-violet-500 focus:outline-none"
+                                    placeholder="Enter your username">
+                            </div>
+                        </div>
+                        
+                        <!-- Password Field -->
+                        <div>
+                            <label for="password" class="mb-2 block text-sm font-medium text-gray-300">
+                                <i class="fas fa-lock mr-2 text-violet-400"></i>Password
+                            </label>
+                            <div class="relative">
+                                <input type="password" id="password" name="password" required
+                                    class="form-input w-full rounded-lg border border-gray-700 bg-gray-800/50 px-4 py-3 text-white placeholder-gray-500 focus:border-violet-500 focus:outline-none pr-10"
+                                    placeholder="Enter your password">
+                                <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-violet-300">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Remember Me -->
+                        <div class="flex items-center">
+                            <input type="checkbox" id="remember" name="remember"
+                                class="h-4 w-4 rounded border-gray-700 bg-gray-800 text-violet-600 focus:ring-violet-500 focus:ring-offset-gray-900">
+                            <label for="remember" class="ml-2 text-sm text-gray-300">Remember me</label>
+                        </div>
+                        
+                        <!-- Login Button -->
+                        <button type="submit"
+                            class="w-full rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 py-3 font-medium text-white shadow-lg hover:from-violet-700 hover:to-purple-700 transition duration-300 transform hover:-translate-y-0.5">
+                            <i class="fas fa-sign-in-alt mr-2"></i> Login
+                        </button>
+                    </form>
+                    
+                    <div class="mt-6 text-center text-xs text-gray-500">
+                        <p>Only authorized personnel should attempt to log in</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle password visibility
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const icon = this.querySelector('i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    </script>
+</body>
+</html>

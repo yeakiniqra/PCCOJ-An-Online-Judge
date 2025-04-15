@@ -35,7 +35,7 @@ Activate the Virtual Environment
 ```
 Install requirements 
 ```bash
-  pip install requirements.txt
+  pip install -r requirements.txt
 ```
 Run the backend
 ```bash

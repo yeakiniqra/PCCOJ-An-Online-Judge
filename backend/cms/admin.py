@@ -13,6 +13,9 @@ admin.site.register(Leaderboard)
 admin.site.register(ProblemTag)
 admin.site.register(ContestParticipation)
 admin.site.register(PracticeProblem)
+admin.site.register(PracticeSubmission)
+admin.site.register(PracticeSubmissionTestcase)
+admin.site.register(PracticeTestcase)
 
 class SubmissionAdmin(admin.ModelAdmin):
     list_display = ('user', 'problem', 'contest', 'language_display', 'status', 'testcases_passed', 'testcases_total')

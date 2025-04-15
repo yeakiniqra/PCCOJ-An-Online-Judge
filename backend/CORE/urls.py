@@ -15,6 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from cms.views import *
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -43,6 +44,11 @@ urlpatterns = [
     # Swagger UI
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+
+    # cms urls
+    path('accounts/login/', admin_login, name='admin_login'),
+    path('admin_logout/', admin_logout, name='admin_logout'),
+    path('', dashboard_page, name='dashboard_page'),
 ]
 
 if settings.DEBUG:

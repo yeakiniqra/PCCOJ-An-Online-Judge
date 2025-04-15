@@ -418,3 +418,46 @@ class PracticeSubmission(models.Model):
     
     def __str__(self):
         return f"{self.user.username} - {self.problem.title}"
+    
+
+# Testcase Model
+class PracticeTestcase(models.Model):
+    problem = models.ForeignKey(PracticeProblem, on_delete=models.CASCADE, related_name='testcases')
+    input = models.TextField()
+    output = models.TextField()
+    is_sample = models.BooleanField(default=False)
+    points = models.IntegerField(default=0)  # Points for this testcase
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['problem', 'is_sample']),
+        ]
+
+    def __str__(self):
+        return f'Testcase for {self.problem.title}'
+
+# Submission Testcase Model
+class PracticeSubmissionTestcase(models.Model):
+    STATUS_CHOICES = [
+        ('Accepted', 'Accepted'), 
+        ('Wrong Answer', 'Wrong Answer'), 
+        ('Runtime Error', 'Runtime Error'), 
+        ('Time Limit Exceeded', 'Time Limit Exceeded'),
+        ('Memory Limit Exceeded', 'Memory Limit Exceeded')
+    ]
+    
+    submission = models.ForeignKey(PracticeSubmission, on_delete=models.CASCADE, related_name='testcases')
+    testcase = models.ForeignKey(PracticeTestcase, on_delete=models.CASCADE, related_name='submissions')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Accepted')
+    execution_time = models.FloatField(null=True, blank=True)  # in seconds
+    memory_used = models.FloatField(null=True, blank=True)  # in MB
+    output = models.TextField(blank=True, null=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['submission', 'status']),
+        ]
+
+    def __str__(self):
+        return f'{self.submission.user.username} - {self.testcase.problem.title}'    

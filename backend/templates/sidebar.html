@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sidebar: {
+                            dark: '#0f172a',
+                            darker: '#0c1424',
+                            hover: '#1e293b',
+                            active: '#1e40af',
+                            text: '#94a3b8'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--sidebar-text);
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .sidebar-link.active {
+            background-color: var(--sidebar-active);
+            color: white;
+            font-weight: 500;
+            /* font-medium */
+        }
+
+        .sidebar-link:hover {
+            background-color: var(--sidebar-hover);
+            color: white;
+        }
+
+        /* Custom scrollbar */
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: #0c1424;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 5px;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* Dropdown animation */
+        .dropdown-menu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .dropdown-menu.show {
+            max-height: 500px;
+            transition: max-height 0.3s ease-in;
+        }
+    </style>
+    <title>
+        Admin-PCCOJ | Dashboard
+    </title>
+</head>
+
+<body class="bg-gray-100">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside
+            class="fixed inset-y-0 left-0 z-50 w-64 bg-sidebar-dark border-r border-gray-800 shadow-lg transition-all duration-300 ease-in-out flex flex-col">
+            <!-- Logo Section -->
+            <div class="flex h-16 items-center justify-center border-b border-gray-800 bg-sidebar-darker flex-shrink-0">
+                <div class="flex items-center gap-2">
+                    <img src="https://i.postimg.cc/vZrdKb4T/pcc-logo.png" alt="PCCOJ Logo" class="h-8 w-8 rounded-full">
+                    <span class="text-xl font-bold text-white">PCCOJ Admin</span>
+                </div>
+            </div>
+
+            <!-- Navigation Links - Scrollable -->
+            <nav class="flex-1 overflow-y-auto sidebar-scroll p-2">
+                <!-- Dashboard -->
+                <a href="#" class="sidebar-link active mt-2">
+                    <i class="fas fa-tachometer-alt w-5 text-gray-100"></i>
+                    <span class="text-gray-100">Dashboard</span>
+                </a>
+
+                <!-- Problems Management -->
+                <div class="mt-4">
+                    <button class="sidebar-link w-full flex justify-between dropdown-toggle" data-target="problems-dropdown">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-puzzle-piece w-5 text-gray-100"></i>
+                            <span class="text-gray-100 text-left">Problems Management</span>
+                        </div>
+                        <i class="fas fa-chevron-down transition-transform duration-300 text-white"></i>
+                    </button>
+                    <div id="problems-dropdown" class="dropdown-menu pl-4 pr-2">
+                        <a href="#" class="sidebar-link mt-1">
+                            <i class="fas fa-list w-5 text-gray-100"></i>
+                            <span class="text-gray-100">Practice Problems</span>
+                        </a>
+                        <a href="#" class="sidebar-link mt-1">
+                            <i class="fas fa-plus-circle w-5 text-gray-100"></i>
+                            <span class="text-gray-100">Add New Problem</span>
+                        </a>
+                        <a href="#" class="sidebar-link mt-1">
+                            <i class="fas fa-tags w-5 text-gray-100"></i>
+                            <span class="text-gray-100">Problem Tags</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Contest Section -->
+                <div class="mt-2">
+                    <button class="sidebar-link w-full flex justify-between dropdown-toggle" data-target="contests-dropdown">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-trophy w-5 text-gray-100"></i>
+                            <span class="text-gray-100 text-left">Contest Management</span>
+                        </div>
+                        <i class="fas fa-chevron-down transition-transform duration-300 text-white"></i>
+                    </button>
+                    <div id="contests-dropdown" class="dropdown-menu pl-4 pr-2">
+                        <a href="#" class="sidebar-link mt-1">
+                            <i class="fas fa-list-alt w-5 text-gray-100"></i>
+                            <span class="text-gray-100">All Contests</span>
+                        </a>
+                        <a href="#" class="sidebar-link mt-1">
+                            <i class="fas fa-calendar-plus w-5 text-gray-100"></i>
+                            <span class="text-gray-100">Create Contest</span>
+                        </a>
+                        <a href="#" class="sidebar-link mt-1">
+                            <i class="fas fa-chart-line w-5 text-gray-100"></i>
+                            <span class="text-gray-100">Contest Analytics</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Submissions Section -->
+                <div class="mt-2">
+                    <button class="sidebar-link w-full flex justify-between dropdown-toggle" data-target="submissions-dropdown">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-code w-5 text-gray-100"></i>
+                            <span class="text-gray-100">Submissions</span>
+                        </div>
+                        <i class="fas fa-chevron-down transition-transform duration-300 text-white"></i>
+                    </button>
+                    <div id="submissions-dropdown" class="dropdown-menu pl-4 pr-2">
+                        <a href="#" class="sidebar-link mt-1">
+                            <i class="fas fa-list-ul w-5 text-gray-100"></i>
+                            <span class="text-gray-100">All Submissions</span>
+                        </a>
+                       
+                    </div>
+                </div>
+
+                <!-- Users Section -->
+                <div class="mt-2">
+                    <button class="sidebar-link w-full flex justify-between dropdown-toggle" data-target="users-dropdown">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-users w-5 text-gray-100"></i>
+                            <span class="text-gray-100">User Management</span>
+                        </div>
+                        <i class="fas fa-chevron-down transition-transform duration-300 text-white"></i>
+                    </button>
+                    <div id="users-dropdown" class="dropdown-menu pl-4 pr-2">
+                        <a href="#" class="sidebar-link mt-1">
+                            <i class="fas fa-user-friends w-5 text-gray-100"></i>
+                            <span class="text-gray-100">All Users</span>
+                        </a>
+                        <a href="#" class="sidebar-link mt-1">
+                            <i class="fas fa-user-shield w-5 text-gray-100"></i>
+                            <span class="text-gray-100">Admin Users</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Communication -->
+                <div class="mt-2">
+                    <button class="sidebar-link w-full flex justify-between dropdown-toggle" data-target="comm-dropdown">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-bullhorn w-5 text-gray-100"></i>
+                            <span class="text-gray-100">Communication</span>
+                        </div>
+                        <i class="fas fa-chevron-down transition-transform duration-300 text-white"></i>
+                    </button>
+                    <div id="comm-dropdown" class="dropdown-menu pl-4 pr-2">
+                        <a href="#" class="sidebar-link mt-1">
+                            <i class="fas fa-bell w-5 text-gray-100"></i>
+                            <span class="text-gray-100">Announcements</span>
+                        </a>
+                        <a href="#" class="sidebar-link mt-1">
+                            <i class="fas fa-envelope w-5 text-gray-100"></i>
+                            <span class="text-gray-100">Send Emails</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Bottom Section with logout button separated -->
+            <div class="p-4 border-t border-gray-800 bg-sidebar-darker flex-shrink-0">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+                            A
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-white">Admin</p>
+                            <p class="text-xs text-gray-500">admin@pccoj.com</p>
+                        </div>
+                    </div>
+                    <a href="#" class="text-gray-400 hover:text-white">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </a>
+                </div>
+               
+                <a href="{% url 'admin_logout' %}" class="sidebar-link bg-sidebar-hover w-full flex justify-center text-white hover:bg-red-700 transition-colors">
+                    <i class="fas fa-sign-out-alt mr-2"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="ml-64 flex-1 p-6">
+            {% block content %}
+            <!-- Main content goes here -->
+             {% endblock %}
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Handle dropdown toggles
+            const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+            
+            dropdownToggles.forEach(toggle => {
+                toggle.addEventListener('click', function () {
+                    const targetId = this.getAttribute('data-target');
+                    const dropdownMenu = document.getElementById(targetId);
+                    const icon = this.querySelector('.fa-chevron-down');
+                    
+                    // Toggle dropdown visibility
+                    dropdownMenu.classList.toggle('show');
+                    
+                    // Rotate icon
+                    if (dropdownMenu.classList.contains('show')) {
+                        icon.style.transform = 'rotate(180deg)';
+                    } else {
+                        icon.style.transform = 'rotate(0)';
+                    }
+                });
+            });
+
+            // For toggling active state in sidebar links
+            const sidebarLinks = document.querySelectorAll('.sidebar-link:not(.dropdown-toggle)');
+
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', function (e) {
+                    // Don't apply to dropdown toggle buttons
+                    if (!this.classList.contains('dropdown-toggle')) {
+                        // Remove active class from all links
+                        sidebarLinks.forEach(l => l.classList.remove('active'));
+                        // Add active class to clicked link
+                        this.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

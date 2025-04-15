@@ -233,7 +233,7 @@ class ProblemViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
             submission.save()
 
             # update user profile
-            user_profile = submission.user.userprofile
+            user_profile = submission.user.profile
             user_profile.update_stats()
 
     def _submit_to_judge0(self, data):
