@@ -49,6 +49,9 @@ urlpatterns = [
     path('accounts/login/', admin_login, name='admin_login'),
     path('admin_logout/', admin_logout, name='admin_logout'),
     path('', dashboard_page, name='dashboard_page'),
+    
+    # contest urls
+    path('allcontest/', allcontest, name='allcontest'),
 ]
 
 if settings.DEBUG:

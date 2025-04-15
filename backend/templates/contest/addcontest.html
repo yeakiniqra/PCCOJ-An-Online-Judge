@@ -1,0 +1,32 @@
+{% extends 'sidebar.html' %}
+
+{% block title %}Admin-PCCOJ | All Contests{% endblock %}
+
+{% block content %}
+<h1>All Contests</h1>
+<table border="1" style="width: 100%; text-align: left; border-collapse: collapse;">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for contest in contests %}
+        <tr>
+            <td>{{ contest.id }}</td>
+            <td>{{ contest.name }}</td>
+            <td>{{ contest.start_date }}</td>
+            <td>{{ contest.end_date }}</td>
+            <td>
+                <a href="/contest/edit/{{ contest.id }}">Edit</a> |
+                <a href="/contest/delete/{{ contest.id }}" onclick="return confirm('Are you sure you want to delete this contest?');">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

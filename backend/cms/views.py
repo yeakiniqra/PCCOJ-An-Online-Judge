@@ -79,3 +79,13 @@ def dashboard_page(request):
     else:
         messages.error(request, 'You are not authorized to access this page.')
         return redirect('admin_login')
+    
+
+@login_required(login_url='admin_login')
+def allcontest(request):
+    if request.user.is_staff:
+        contests = Contest.objects.all()
+        return render(request, 'contest/allcontest.html', {'contests': contests})
+    else:
+        messages.error(request, 'You are not authorized to access this page.')
+        return redirect('admin_login')
