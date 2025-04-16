@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Editor } from "@monaco-editor/react"
+import { simplifyProblemStatement } from "@/services/Gemini"
 import usePracticeProblemStore from "@/store/PracticeproblemStore"
 import usePracticeSubmitStore from "@/store/PracticeSubmit"
 import {
@@ -37,6 +38,7 @@ import {
   Cpu,
   BarChart2,
   Eye,
+  Sparkles,
 } from "lucide-react"
 
 const languageOptions = [
@@ -154,6 +156,8 @@ export default function PracticeProblemDetails() {
   const [selectedLanguage, setSelectedLanguage] = useState(languageOptions[0])
   const [code, setCode] = useState(boilerplateCode.python)
   const [bookmarked, setBookmarked] = useState(false)
+  const [simplified, setSimplified] = useState('')
+  const [simplifyLoading, setSimplifyLoading] = useState(false);
   const [copied, setCopied] = useState({ input: false, output: false })
   const [expandedSections, setExpandedSections] = useState({
     statement: true,
@@ -189,12 +193,30 @@ export default function PracticeProblemDetails() {
   const handleSubmit = async () => {
     if (!problem || !code.trim()) return
     await submitPracticeCode({
-      problemId: problem.id, 
+      problemId: problem.id,
       code,
       language: selectedLanguage.id,
     })
     setActiveTab("results")
   }
+
+  const handleSimplify = async () => {
+    setSimplifyLoading(true);
+    try {
+      const result = await simplifyProblemStatement(problem.statement);
+      setSimplified(result);
+    } catch (error) {
+      console.error('Simplification error:', error);
+      setSimplified(
+        'Failed to simplify. Please try again. ' +
+        (error.message === 'Gemini API key not found' ?
+          'API key configuration is missing.' :
+          'The service may be temporarily unavailable.')
+      );
+    } finally {
+      setSimplifyLoading(false);
+    }
+  };
 
   const toggleSection = (section) => {
     setExpandedSections((prev) => ({
@@ -275,11 +297,10 @@ export default function PracticeProblemDetails() {
 
             <button
               onClick={() => setBookmarked(!bookmarked)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                bookmarked
-                  ? "bg-purple-900/20 text-purple-400 border border-purple-700/50"
-                  : "bg-gray-900/60 backdrop-blur-sm border border-gray-800 text-white hover:bg-gray-800"
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${bookmarked
+                ? "bg-purple-900/20 text-purple-400 border border-purple-700/50"
+                : "bg-gray-900/60 backdrop-blur-sm border border-gray-800 text-white hover:bg-gray-800"
+                }`}
             >
               {bookmarked ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
               <span>{bookmarked ? "Bookmarked" : "Bookmark"}</span>
@@ -328,11 +349,9 @@ export default function PracticeProblemDetails() {
                     <h1 className="text-3xl font-bold text-white mb-2">{problem.title}</h1>
                     <div className="flex flex-wrap gap-3 items-center">
                       <div
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          getDifficultyColor(problem.difficulty).bg
-                        } ${getDifficultyColor(problem.difficulty).text} ${
-                          getDifficultyColor(problem.difficulty).border
-                        }`}
+                        className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyColor(problem.difficulty).bg
+                          } ${getDifficultyColor(problem.difficulty).text} ${getDifficultyColor(problem.difficulty).border
+                          }`}
                       >
                         <Zap className="h-4 w-4 inline mr-1" />
                         {problem.difficulty}
@@ -402,11 +421,10 @@ export default function PracticeProblemDetails() {
               <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800 rounded-xl overflow-hidden">
                 <div className="flex border-b border-gray-800">
                   <button
-                    className={`flex-1 py-3 px-4 text-center font-medium text-sm transition-colors ${
-                      activeTab === "problem"
-                        ? "text-purple-400 border-b-2 border-purple-500"
-                        : "text-gray-400 hover:text-white"
-                    }`}
+                    className={`flex-1 py-3 px-4 text-center font-medium text-sm transition-colors ${activeTab === "problem"
+                      ? "text-purple-400 border-b-2 border-purple-500"
+                      : "text-gray-400 hover:text-white"
+                      }`}
                     onClick={() => setActiveTab("problem")}
                   >
                     <div className="flex items-center justify-center gap-2">
@@ -415,11 +433,10 @@ export default function PracticeProblemDetails() {
                     </div>
                   </button>
                   <button
-                    className={`flex-1 py-3 px-4 text-center font-medium text-sm transition-colors ${
-                      activeTab === "editorial"
-                        ? "text-purple-400 border-b-2 border-purple-500"
-                        : "text-gray-400 hover:text-white"
-                    }`}
+                    className={`flex-1 py-3 px-4 text-center font-medium text-sm transition-colors ${activeTab === "editorial"
+                      ? "text-purple-400 border-b-2 border-purple-500"
+                      : "text-gray-400 hover:text-white"
+                      }`}
                     onClick={() => setActiveTab("editorial")}
                   >
                     <div className="flex items-center justify-center gap-2">
@@ -428,11 +445,10 @@ export default function PracticeProblemDetails() {
                     </div>
                   </button>
                   <button
-                    className={`flex-1 py-3 px-4 text-center font-medium text-sm transition-colors ${
-                      activeTab === "results"
-                        ? "text-purple-400 border-b-2 border-purple-500"
-                        : "text-gray-400 hover:text-white"
-                    }`}
+                    className={`flex-1 py-3 px-4 text-center font-medium text-sm transition-colors ${activeTab === "results"
+                      ? "text-purple-400 border-b-2 border-purple-500"
+                      : "text-gray-400 hover:text-white"
+                      }`}
                     onClick={() => setActiveTab("results")}
                   >
                     <div className="flex items-center justify-center gap-2">
@@ -478,7 +494,58 @@ export default function PracticeProblemDetails() {
                                 transition={{ duration: 0.2 }}
                                 className="overflow-hidden"
                               >
-                                <div className="p-4 text-gray-300 whitespace-pre-wrap">{problem.statement}</div>
+                                <div className="p-4 text-gray-300 whitespace-pre-wrap">
+                                  {simplifyLoading ? (
+                                    <div className="flex items-center gap-2">
+                                      <Loader2 className="animate-spin h-5 w-5 text-purple-400" />
+                                      <span>Simplifying...</span>
+                                    </div>
+                                  ) : simplified ? (
+                                    <div>
+                                      <h3 className="text-purple-400 font-medium mb-2">Simplified Statement:</h3>
+                                      <p>{simplified}</p>
+                                    </div>
+                                  ) : (
+                                    problem.statement
+                                  )}
+                                </div>
+                                <div className="p-4">
+                                  <motion.button
+                                    onClick={handleSimplify}
+                                    disabled={simplifyLoading}
+                                    className={`px-5 py-2.5 rounded-full text-white flex items-center gap-2 shadow-lg ${simplifyLoading
+                                        ? "bg-gray-800 border border-gray-700 cursor-not-allowed"
+                                        : "bg-gray-900 border border-purple-700/50 hover:border-purple-500"
+                                      }`}
+                                    whileHover={!simplifyLoading ? { scale: 1.03, boxShadow: "0 0 10px rgba(139, 92, 246, 0.3)" } : {}}
+                                    whileTap={!simplifyLoading ? { scale: 0.98 } : {}}
+                                    initial={{ opacity: 0.9 }}
+                                    animate={{ opacity: 1 }}
+                                  >
+                                    {simplifyLoading ? (
+                                      <>
+                                        <motion.div
+                                          animate={{ rotate: 360 }}
+                                          transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                                        >
+                                          <Loader2 className="h-4 w-4 text-purple-400" />
+                                        </motion.div>
+                                        <span>Simplifying<span className="opacity-75">...</span></span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Sparkles className="h-4 w-4 text-purple-400" />
+                                        <span>Simplify Statement</span>
+                                        <motion.div
+                                          className="absolute inset-0 rounded-full bg-purple-600/10"
+                                          initial={{ scale: 0, opacity: 0 }}
+                                          whileHover={{ scale: 1, opacity: 1 }}
+                                          transition={{ duration: 0.3 }}
+                                        />
+                                      </>
+                                    )}
+                                  </motion.button>
+                                </div>
                               </motion.div>
                             )}
                           </AnimatePresence>
@@ -743,11 +810,10 @@ export default function PracticeProblemDetails() {
                         {submissionResult ? (
                           <div className="space-y-6">
                             <div
-                              className={`p-4 rounded-lg border ${
-                                submissionResult.status === "Accepted"
-                                  ? "border-green-700/50 bg-green-900/10"
-                                  : "border-red-700/50 bg-red-900/10"
-                              }`}
+                              className={`p-4 rounded-lg border ${submissionResult.status === "Accepted"
+                                ? "border-green-700/50 bg-green-900/10"
+                                : "border-red-700/50 bg-red-900/10"
+                                }`}
                             >
                               <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
@@ -757,9 +823,8 @@ export default function PracticeProblemDetails() {
                                     <XCircle className="h-5 w-5 text-red-500" />
                                   )}
                                   <span
-                                    className={`font-medium ${
-                                      submissionResult.status === "Accepted" ? "text-green-400" : "text-red-400"
-                                    }`}
+                                    className={`font-medium ${submissionResult.status === "Accepted" ? "text-green-400" : "text-red-400"
+                                      }`}
                                   >
                                     {submissionResult.status}
                                   </span>
@@ -800,11 +865,10 @@ export default function PracticeProblemDetails() {
                               {submissionResult.testcases?.map((tc) => (
                                 <div
                                   key={tc.id}
-                                  className={`p-4 rounded-lg border ${
-                                    tc.status === "Accepted"
-                                      ? "border-green-700/50 bg-green-900/10"
-                                      : "border-red-700/50 bg-red-900/10"
-                                  }`}
+                                  className={`p-4 rounded-lg border ${tc.status === "Accepted"
+                                    ? "border-green-700/50 bg-green-900/10"
+                                    : "border-red-700/50 bg-red-900/10"
+                                    }`}
                                 >
                                   <div className="flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-2">
@@ -814,9 +878,8 @@ export default function PracticeProblemDetails() {
                                         <XCircle className="h-5 w-5 text-red-500" />
                                       )}
                                       <span
-                                        className={`font-medium ${
-                                          tc.status === "Accepted" ? "text-green-400" : "text-red-400"
-                                        }`}
+                                        className={`font-medium ${tc.status === "Accepted" ? "text-green-400" : "text-red-400"
+                                          }`}
                                       >
                                         {tc.is_sample ? "Sample Testcase" : "Hidden Testcase"}
                                       </span>
@@ -916,11 +979,10 @@ export default function PracticeProblemDetails() {
                   <motion.button
                     onClick={handleSubmit}
                     disabled={submitting || !code.trim()}
-                    className={`px-6 py-2.5 rounded-lg text-white font-medium flex items-center gap-2 transition-colors ${
-                      submitting || !code.trim()
-                        ? "bg-gray-700 cursor-not-allowed"
-                        : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                    }`}
+                    className={`px-6 py-2.5 rounded-lg text-white font-medium flex items-center gap-2 transition-colors ${submitting || !code.trim()
+                      ? "bg-gray-700 cursor-not-allowed"
+                      : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                      }`}
                     whileHover={!submitting && code.trim() ? { scale: 1.02 } : {}}
                     whileTap={!submitting && code.trim() ? { scale: 0.98 } : {}}
                   >
