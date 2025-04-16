@@ -56,6 +56,7 @@ urlpatterns = [
     path('allcontest/', allcontest, name='allcontest'),
     path('addcontest/', addcontest, name='addcontest'),
     path('contest/edit/<int:contest_id>/', editcontest, name='editcontest'),
+    path('contest/delete/<int:contest_id>/', deletecontest, name='deletecontest'),
 ]
 
 if settings.DEBUG:

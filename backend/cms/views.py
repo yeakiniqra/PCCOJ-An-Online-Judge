@@ -122,6 +122,16 @@ def editcontest(request, contest_id):
 
 
 
+def deletecontest(request, contest_id):
+    contest = get_object_or_404(Contest, id=contest_id)
+    
+    # Delete the contest
+    contest.delete()
+    messages.success(request, 'Contest deleted successfully.')
+    return redirect('allcontest')
+
+
+
 
 
 
