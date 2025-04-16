@@ -42,3 +42,28 @@ body {
 .animate-fadeIn {
   animation: fadeIn 1s ease-out forwards;
 }
+
+
+/* Terminal cursor animation */
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}
+
+/* Terminal glow effects */
+.terminal-glow {
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3), 0 0 20px rgba(16, 185, 129, 0.2), 0 0 30px rgba(16, 185, 129, 0.1);
+}
+
+.terminal-text-glow {
+  text-shadow: 0 0 5px rgba(16, 185, 129, 0.7);
+}
