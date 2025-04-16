@@ -3,47 +3,89 @@
 {% block title %}Admin-PCCOJ | All Contests{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl font-bold mb-6">All Contests</h1>
+<div class="px-4 py-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">All Contests</h1>
+            <p class="text-gray-600 mt-1">Manage, edit or delete ongoing and past contests</p>
+        </div>
+        <a href="{% url 'addcontest' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+            <i class="fas fa-plus"></i> New Contest
+        </a>
+    </div>
 
-{% if messages %}
-        <ul class="mb-4">
-            {% for message in messages %}
-                <li class="text-sm text-{{ message.tags }}-600">{{ message }}</li>
-            {% endfor %}
-        </ul>
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="text-sm px-4 py-2 rounded bg-{{ message.tags }}-100 text-{{ message.tags }}-800">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
     {% endif %}
 
-{% if contests %}
-<div class="overflow-x-auto">
-    <table class="min-w-full border border-gray-300 text-left">
-        <thead class="bg-gray-100">
-            <tr>
-                <th class="px-4 py-2 border-b">ID</th>
-                <th class="px-4 py-2 border-b">Title</th>
-                <th class="px-4 py-2 border-b">Status</th>
-                <th class="px-4 py-2 border-b">Start Time</th>
-                <th class="px-4 py-2 border-b">End Time</th>
-                <th class="px-4 py-2 border-b">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for contest in contests %}
-            <tr class="hover:bg-gray-50">
-                <td class="px-4 py-2 border-b">{{ contest.id }}</td>
-                <td class="px-4 py-2 border-b">{{ contest.title }}</td>
-                <td class="px-4 py-2 border-b">{{ contest.status }}</td>
-                <td class="px-4 py-2 border-b">{{ contest.start_time }}</td>
-                <td class="px-4 py-2 border-b">{{ contest.end_time }}</td>
-                <td class="px-4 py-2 border-b">
-                    <a href="/contest/edit/{{ contest.id }}" class="text-blue-500 hover:underline">Edit</a> |
-                    <a href="/contest/delete/{{ contest.id }}" class="text-red-500 hover:underline" onclick="return confirm('Are you sure you want to delete this contest?');">Delete</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    
+   
+
+
+
+
+
+
+
+    <!-- Contest Table -->
+    {% if contests %}
+    <div class="bg-white border border-gray-200 shadow-sm rounded-lg overflow-x-auto">
+        <table class="min-w-full text-sm text-left">
+            <thead class="bg-gray-100 border-b text-gray-700">
+                <tr>
+                    <th class="px-4 py-3">ID</th>
+                    <th class="px-4 py-3">Title</th>
+                    <th class="px-4 py-3">Status</th>
+                    <th class="px-4 py-3">Start Time</th>
+                    <th class="px-4 py-3">End Time</th>
+                    <th class="px-4 py-3">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for contest in contests %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 font-medium text-gray-800">{{ contest.id }}</td>
+                    <td class="px-4 py-3 text-gray-700">{{ contest.title }}</td>
+                    <td class="px-4 py-3">
+                        <span class="inline-block px-2 py-1 rounded-full text-xs font-semibold 
+                            {% if contest.status == 'ongoing' %}
+                                bg-gradient-to-r from-green-500 to-emerald-400 text-white
+                            {% elif contest.status == 'upcoming' %}
+                                bg-gradient-to-r from-blue-500 to-cyan-400 text-white
+                            {% elif contest.status == 'ended' %}
+                                bg-gradient-to-r from-purple-500 to-indigo-400 text-white    
+                            {% else %}
+                                bg-gradient-to-r from-gray-500 to-gray-400 text-white
+                            {% endif %}">
+                            {{ contest.status }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-gray-600">{{ contest.start_time }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ contest.end_time }}</td>
+                    <td class="px-4 py-3">
+                        <a href="/contest/edit/{{ contest.id }}" class="text-blue-600 hover:underline mr-2">Edit</a>
+                        <a href="/contest/delete/{{ contest.id }}" class="text-red-600 hover:underline"
+                            onclick="return confirm('Are you sure you want to delete this contest?');">
+                            Delete
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="mt-4 text-center text-gray-500 text-sm">
+        No contests available.
+    </div>
+    {% endif %}
 </div>
-{% else %}
-<p class="text-gray-500">No contests available.</p>
-{% endif %}
 {% endblock %}
