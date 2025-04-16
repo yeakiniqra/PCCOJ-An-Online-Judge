@@ -599,3 +599,111 @@ class PracticeSubmissionCreateSerializer(serializers.ModelSerializer):
         )
         return submission
 
+
+
+# Announcement Serializers
+class AnnouncementListSerializer(serializers.ModelSerializer):
+    """Serializer for listing announcements with minimal details"""
+    created_by = serializers.StringRelatedField(read_only=True)
+    announcement_type_display = serializers.CharField(source='get_announcement_type_display', read_only=True)
+    is_expired = serializers.BooleanField(read_only=True)
+    time_since = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Announcement
+        fields = [
+            'id', 'title', 'announcement_type', 'announcement_type_display',
+            'is_featured', 'is_global', 'created_by', 'created_at',
+            'is_expired', 'time_since'
+        ]
+    
+    def get_time_since(self, obj):
+        """Return a human-readable time since creation"""
+        now = timezone.now()
+        diff = now - obj.created_at
+        
+        if diff.days > 30:
+            return f"{diff.days // 30} months ago"
+        elif diff.days > 0:
+            return f"{diff.days} days ago"
+        elif diff.seconds > 3600:
+            return f"{diff.seconds // 3600} hours ago"
+        elif diff.seconds > 60:
+            return f"{diff.seconds // 60} minutes ago"
+        else:
+            return "just now"
+
+
+class AnnouncementDetailSerializer(serializers.ModelSerializer):
+    """Serializer for detailed view of an announcement"""
+    created_by = serializers.StringRelatedField(read_only=True)
+    contest_title = serializers.CharField(source='contest.title', read_only=True)
+    announcement_type_display = serializers.CharField(source='get_announcement_type_display', read_only=True)
+    is_expired = serializers.BooleanField(read_only=True)
+    
+    class Meta:
+        model = Announcement
+        fields = [
+            'id', 'title', 'content', 'announcement_type', 'announcement_type_display',
+            'contest', 'contest_title', 'is_featured', 'is_global', 'external_link', 
+            'image', 'created_by', 'created_at', 'updated_at', 'expires_at', 'is_expired'
+        ]
+
+
+# Type-specific Announcement Serializers
+class TrainingAnnouncementSerializer(serializers.ModelSerializer):
+    """Serializer specifically for training announcements"""
+    created_by = serializers.StringRelatedField(read_only=True)
+    
+    class Meta:
+        model = Announcement
+        fields = [
+            'id', 'title', 'content', 'is_featured', 
+            'external_link', 'image', 'created_by', 'created_at'
+        ]
+    
+    def validate(self, data):
+        """Force announcement_type to 'training'"""
+        data['announcement_type'] = 'training'
+        return data
+
+
+class ResourceAnnouncementSerializer(serializers.ModelSerializer):
+    """Serializer specifically for resource announcements"""
+    created_by = serializers.StringRelatedField(read_only=True)
+    
+    class Meta:
+        model = Announcement
+        fields = [
+            'id', 'title', 'content', 'is_featured', 
+            'external_link', 'image', 'created_by', 'created_at'
+        ]
+    
+    def validate(self, data):
+        """Ensure external_link is provided and set announcement_type"""
+        if not data.get('external_link'):
+            raise serializers.ValidationError("External link is required for resource announcements")
+        
+        data['announcement_type'] = 'resource'
+        return data
+
+
+class ContestAnnouncementSerializer(serializers.ModelSerializer):
+    """Serializer specifically for contest announcements"""
+    created_by = serializers.StringRelatedField(read_only=True)
+    contest_title = serializers.CharField(source='contest.title', read_only=True)
+    
+    class Meta:
+        model = Announcement
+        fields = [
+            'id', 'title', 'content', 'contest', 'contest_title',
+            'is_featured', 'created_by', 'created_at'
+        ]
+    
+    def validate(self, data):
+        """Ensure contest is provided and set announcement_type"""
+        if not data.get('contest'):
+            raise serializers.ValidationError("Contest must be specified for contest announcements")
+        
+        data['announcement_type'] = 'contest'
+        return data        

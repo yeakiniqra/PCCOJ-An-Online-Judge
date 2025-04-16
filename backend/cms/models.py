@@ -286,21 +286,74 @@ class SubmissionTestcase(models.Model):
 
 # System Announcements
 class Announcement(models.Model):
+    ANNOUNCEMENT_TYPE_CHOICES = [
+        ('normal', 'Normal'),
+        ('training', 'Training'),
+        ('resource', 'Resource'),
+        ('contest', 'Contest'),
+    ]
+    
     title = models.CharField(max_length=255)
     content = models.TextField()
-    contest = models.ForeignKey(Contest, on_delete=models.CASCADE, related_name='announcements', null=True, blank=True)
+    announcement_type = models.CharField(
+        max_length=20, 
+        choices=ANNOUNCEMENT_TYPE_CHOICES, 
+        default='normal',
+        db_index=True
+    )
+    contest = models.ForeignKey(
+        Contest, 
+        on_delete=models.CASCADE, 
+        related_name='announcements', 
+        null=True, 
+        blank=True
+    )
+    is_featured = models.BooleanField(default=False, help_text="Featured announcements appear at the top")
+    is_global = models.BooleanField(default=True, help_text="Visible to all users")
+    external_link = models.URLField(null=True, blank=True, help_text="Optional link to external resource")
+    image = models.ImageField(upload_to='announcement_images/', null=True, blank=True)
+    
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='announcements')
     created_at = models.DateTimeField(auto_now_add=True)
-    is_global = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # Optional expiration date for temporary announcements
+    expires_at = models.DateTimeField(null=True, blank=True)
     
     class Meta:
         indexes = [
+            models.Index(fields=['announcement_type']),
             models.Index(fields=['contest', 'created_at']),
             models.Index(fields=['is_global']),
+            models.Index(fields=['is_featured']),
+            models.Index(fields=['created_at']),
         ]
+        ordering = ['-is_featured', '-created_at']
         
     def __str__(self):
-        return self.title
+        return f"{self.title} ({self.get_announcement_type_display()})"
+    
+    @property
+    def is_expired(self):
+        """Check if announcement has expired"""
+        if self.expires_at:
+            return timezone.now() > self.expires_at
+        return False
+    
+    @property
+    def is_contest_announcement(self):
+        """Helper to check if this is a contest announcement"""
+        return self.contest is not None or self.announcement_type == 'contest'
+    
+    @property
+    def is_training_announcement(self):
+        """Helper to check if this is a training announcement"""
+        return self.announcement_type == 'training'
+    
+    @property
+    def is_resource_announcement(self):
+        """Helper to check if this is a resource announcement"""
+        return self.announcement_type == 'resource'
     
 
 class PracticeProblem(models.Model):

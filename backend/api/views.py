@@ -554,3 +554,104 @@ class PracticeSubmissionViewSet(mixins.ListModelMixin,
             return {'status': {'description': 'System Error'}}
         except requests.exceptions.RequestException:
             return {'status': {'description': 'API Error'}}
+        
+
+
+# Announcement API's
+class AnnouncementViewSet(mixins.ListModelMixin,
+                          mixins.RetrieveModelMixin,
+                          viewsets.GenericViewSet):
+    """
+    ViewSet for Announcements - READ ONLY:
+    - List all announcements
+    - Retrieve single announcement by ID
+    - Custom endpoints for filtered views
+    """
+    queryset = Announcement.objects.all()
+    permission_classes = [AllowAny]  # Public read access
+    
+    def get_serializer_class(self):
+        """Return appropriate serializer based on action"""
+        if self.action == 'retrieve':
+            return AnnouncementDetailSerializer
+        elif self.action == 'training':
+            return TrainingAnnouncementSerializer
+        elif self.action == 'resources':
+            return ResourceAnnouncementSerializer
+        elif self.action == 'contests':
+            return ContestAnnouncementSerializer
+        return AnnouncementListSerializer
+    
+    def get_queryset(self):
+        """Filter announcements based on query parameters and permissions"""
+        queryset = Announcement.objects.all().order_by('-is_featured', '-created_at')
+        
+        # Only staff can see non-global announcements
+        if not self.request.user.is_staff:
+            queryset = queryset.filter(is_global=True)
+        
+        # Filter out expired announcements unless explicitly requested
+        if self.request.query_params.get('show_expired') != 'true':
+            queryset = queryset.filter(
+                Q(expires_at__isnull=True) | Q(expires_at__gt=timezone.now())
+            )
+        
+        # Filter by announcement type
+        announcement_type = self.request.query_params.get('type')
+        if announcement_type:
+            queryset = queryset.filter(announcement_type=announcement_type)
+        
+        # Filter by contest
+        contest_id = self.request.query_params.get('contest')
+        if contest_id:
+            queryset = queryset.filter(contest_id=contest_id)
+        
+        # Filter by featured status
+        featured = self.request.query_params.get('featured')
+        if featured == 'true':
+            queryset = queryset.filter(is_featured=True)
+        
+        return queryset
+
+    @action(detail=False, methods=['get'])
+    def training(self, request):
+        """Get training announcements"""
+        queryset = self.get_queryset().filter(announcement_type='training')
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def resources(self, request):
+        """Get resource announcements"""
+        queryset = self.get_queryset().filter(announcement_type='resource')
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def contests(self, request):
+        """Get contest announcements"""
+        queryset = self.get_queryset().filter(announcement_type='contest')
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def featured(self, request):
+        """Get featured announcements"""
+        queryset = self.get_queryset().filter(is_featured=True)
+        serializer = AnnouncementListSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def latest(self, request):
+        """Get latest 5 announcements"""
+        queryset = self.get_queryset()[:5]
+        serializer = AnnouncementListSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['get'])
+    def contest_related(self, request, pk=None):
+        """Get announcements related to a specific contest"""
+        contest = get_object_or_404(Contest, pk=pk)
+        queryset = self.get_queryset().filter(contest=contest)
+        serializer = AnnouncementListSerializer(queryset, many=True)
+        return Response(serializer.data)
