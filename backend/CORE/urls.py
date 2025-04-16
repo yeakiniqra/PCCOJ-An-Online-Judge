@@ -24,6 +24,8 @@ from django.conf.urls.static import static
 from django.conf import settings
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
+
+
 schema_view = get_schema_view(
    openapi.Info(
       title="PCCOJ-API",
@@ -53,6 +55,7 @@ urlpatterns = [
     # contest urls
     path('allcontest/', allcontest, name='allcontest'),
     path('addcontest/', addcontest, name='addcontest'),
+    path('contest/edit/<int:contest_id>/', editcontest, name='editcontest'),
 ]
 
 if settings.DEBUG:

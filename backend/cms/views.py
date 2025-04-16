@@ -95,6 +95,37 @@ def allcontest(request):
         messages.error(request, 'You are not authorized to access this page.')
         return redirect('admin_login')
     
+def editcontest(request, contest_id):
+    contest = get_object_or_404(Contest, id=contest_id)
+    
+    if request.method == 'POST':
+        contest.title = request.POST.get('title')
+        contest.description = request.POST.get('description')
+        contest.rules = request.POST.get('rules') or None
+        contest.start_time = parse_datetime(request.POST.get('start_time'))
+        contest.end_time = parse_datetime(request.POST.get('end_time'))
+        contest.is_public = request.POST.get('is_public') == 'on'
+        contest.is_rated = request.POST.get('is_rated') == 'on'
+        contest.max_participants = request.POST.get('max_participants') or None
+        contest.slug = slugify(contest.title)  # Update slug based on the new title
+
+        # Validate contest time
+        if contest.start_time >= contest.end_time:
+            messages.error(request, 'End time must be after start time.')
+            return redirect('editcontest', contest_id=contest.id)
+
+        contest.save()
+        messages.success(request, 'Contest updated successfully.')
+        return redirect('allcontest')
+
+    return render(request, 'contest/editcontest.html', {'contest': contest})
+
+
+
+
+
+
+    
 def addcontest(request):
     if request.user.is_staff:
         if request.method == 'POST':

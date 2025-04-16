@@ -1,0 +1,59 @@
+{% extends 'sidebar.html' %}
+{% block title %}Edit Contest{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Edit Contest</h1>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <div class="mb-4">
+        <label class="block text-gray-700 font-medium mb-1">Title</label>
+        <input type="text" name="title" value="{{ contest.title }}" class="w-full border px-4 py-2 rounded" required>
+    </div>
+
+    <div class="mb-4">
+        <label class="block text-gray-700 font-medium mb-1">Description</label>
+        <textarea name="description" class="w-full border px-4 py-2 rounded" rows="4">{{ contest.description }}</textarea>
+    </div>
+
+    <div class="mb-4">
+        <label class="block text-gray-700 font-medium mb-1">Rules</label>
+        <textarea name="rules" class="w-full border px-4 py-2 rounded" rows="4">{{ contest.rules }}</textarea>
+    </div>
+
+    <div class="mb-4">
+        <label class="block text-gray-700 font-medium mb-1">Start Time</label>
+        <input type="datetime-local" name="start_time" value="{{ contest.start_time|date:'Y-m-d\\TH:i' }}" class="w-full border px-4 py-2 rounded" required>
+    </div>
+
+    <div class="mb-4">
+        <label class="block text-gray-700 font-medium mb-1">End Time</label>
+        <input type="datetime-local" name="end_time" value="{{ contest.end_time|date:'Y-m-d\\TH:i' }}" class="w-full border px-4 py-2 rounded" required>
+    </div>
+
+    <div class="mb-4">
+        <label class="inline-flex items-center">
+            <input type="checkbox" name="is_public" class="mr-2" {% if contest.is_public %}checked{% endif %}>
+            Public
+        </label>
+    </div>
+
+    <div class="mb-4">
+        <label class="inline-flex items-center">
+            <input type="checkbox" name="is_rated" class="mr-2" {% if contest.is_rated %}checked{% endif %}>
+            Rated
+        </label>
+    </div>
+
+    <div class="mb-6">
+        <label class="block text-gray-700 font-medium mb-1">Max Participants (optional)</label>
+        <input type="number" name="max_participants" value="{{ contest.max_participants }}" class="w-full border px-4 py-2 rounded">
+    </div>
+
+    <div class="flex gap-4">
+        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Save</button>
+        <a href="{% url 'allcontest' %}" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded">Cancel</a>
+    </div>
+</form>
+{% endblock %}
