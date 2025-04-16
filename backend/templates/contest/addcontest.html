@@ -3,59 +3,77 @@
 {% block title %}Admin-PCCOJ | Add Contest{% endblock %}
 
 {% block content %}
-<div class="p-6 bg-white shadow-md rounded-lg max-w-4xl mx-auto mt-8">
-    <h2 class="text-2xl font-semibold mb-6 text-gray-800">Create a New Contest</h2>
+<div class="px-4 py-10 bg-gray-100 min-h-screen">
+    <div class="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl max-w-4xl mx-auto p-8 border border-gray-200">
+        <h2 class="text-3xl font-bold mb-8 text-gray-800 border-b pb-3">&lt;/&gt; Create a New Contest</h2>
 
-    
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
 
-    <form method="POST">
-        {% csrf_token %}
-
-        <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700">Title</label>
-            <input name="title" type="text" required class="w-full mt-1 border border-gray-300 p-2 rounded focus:outline-none focus:ring focus:border-blue-300">
-        </div>
-
-        <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700">Description</label>
-            <textarea name="description" rows="3" required class="w-full mt-1 border border-gray-300 p-2 rounded focus:outline-none focus:ring focus:border-blue-300"></textarea>
-        </div>
-
-        <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700">Rules</label>
-            <textarea name="rules" rows="2" class="w-full mt-1 border border-gray-300 p-2 rounded focus:outline-none focus:ring focus:border-blue-300"></textarea>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Title -->
             <div>
-                <label class="block text-sm font-medium text-gray-700">Start Time</label>
-                <input name="start_time" type="datetime-local" required class="w-full mt-1 border border-gray-300 p-2 rounded">
+                <label class="block text-sm font-semibold text-gray-600 mb-1">Title</label>
+                <input name="title" type="text" required 
+                       class="w-full px-4 py-2 rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-200">
             </div>
 
+            <!-- Description -->
             <div>
-                <label class="block text-sm font-medium text-gray-700">End Time</label>
-                <input name="end_time" type="datetime-local" required class="w-full mt-1 border border-gray-300 p-2 rounded">
+                <label class="block text-sm font-semibold text-gray-600 mb-1">Description</label>
+                <textarea name="description" rows="3" required 
+                          class="w-full px-4 py-2 rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-200"></textarea>
             </div>
-        </div>
 
-        <div class="mb-4 mt-4">
-            <label class="block text-sm font-medium text-gray-700">Max Participants (optional)</label>
-            <input name="max_participants" type="number" min="1" class="w-full mt-1 border border-gray-300 p-2 rounded">
-        </div>
+            <!-- Rules -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1">Rules</label>
+                <textarea name="rules" rows="2" 
+                          class="w-full px-4 py-2 rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-200"></textarea>
+            </div>
 
-        <div class="flex items-center mb-4">
-            <input name="is_public" type="checkbox" id="is_public" class="mr-2">
-            <label for="is_public" class="text-sm text-gray-700">Public Contest</label>
-        </div>
+            <!-- Start and End Time -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1">Start Time</label>
+                    <input name="start_time" type="datetime-local" required 
+                           class="w-full px-4 py-2 rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none transition duration-200">
+                </div>
 
-        <div class="flex items-center mb-6">
-            <input name="is_rated" type="checkbox" id="is_rated" class="mr-2" checked>
-            <label for="is_rated" class="text-sm text-gray-700">Rated Contest</label>
-        </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1">End Time</label>
+                    <input name="end_time" type="datetime-local" required 
+                           class="w-full px-4 py-2 rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none transition duration-200">
+                </div>
+            </div>
 
-        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-medium transition-all">
-            Create Contest
-        </button>
-    </form>
+            <!-- Max Participants -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1">Max Participants (optional)</label>
+                <input name="max_participants" type="number" min="1" 
+                       class="w-full px-4 py-2 rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition duration-200">
+            </div>
+
+            <!-- Checkboxes -->
+            <div class="flex flex-col md:flex-row md:space-x-6 space-y-4 md:space-y-0">
+                <label class="inline-flex items-center">
+                    <input type="checkbox" name="is_public" class="accent-blue-600 rounded">
+                    <span class="ml-2 text-gray-700 text-sm">Public Contest</span>
+                </label>
+
+                <label class="inline-flex items-center">
+                    <input type="checkbox" name="is_rated" class="accent-green-600 rounded" checked>
+                    <span class="ml-2 text-gray-700 text-sm">Rated Contest</span>
+                </label>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="pt-4">
+                <button type="submit" 
+                        class="w-full md:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md">
+                    ✨ Create Contest
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}
