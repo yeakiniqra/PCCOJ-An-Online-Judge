@@ -52,6 +52,7 @@ urlpatterns = [
     
     # contest urls
     path('allcontest/', allcontest, name='allcontest'),
+    path('addcontest/', addcontest, name='addcontest'),
 ]
 
 if settings.DEBUG:

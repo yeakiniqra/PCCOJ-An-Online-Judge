@@ -3,6 +3,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .models import *
+from django.utils.dateparse import parse_datetime
+from django.utils.text import slugify
+
+
 
 # Create your views here.
 # Admin login page
@@ -81,11 +85,51 @@ def dashboard_page(request):
         return redirect('admin_login')
     
 
+# Contest Management page
 @login_required(login_url='admin_login')
 def allcontest(request):
     if request.user.is_staff:
         contests = Contest.objects.all()
         return render(request, 'contest/allcontest.html', {'contests': contests})
+    else:
+        messages.error(request, 'You are not authorized to access this page.')
+        return redirect('admin_login')
+    
+def addcontest(request):
+    if request.user.is_staff:
+        if request.method == 'POST':
+            title = request.POST.get('title')
+            description = request.POST.get('description')
+            rules = request.POST.get('rules') or None
+            start_time = parse_datetime(request.POST.get('start_time'))
+            end_time = parse_datetime(request.POST.get('end_time'))
+            is_public = request.POST.get('is_public') == 'on'
+            is_rated = request.POST.get('is_rated') == 'on'
+            max_participants = request.POST.get('max_participants') or None
+
+            # Basic validation (optional)
+            if start_time >= end_time:
+                messages.error(request, 'End time must be after start time.')
+                return redirect('addcontest')
+
+            # Create a new contest instance
+            Contest.objects.create(
+                title=title,
+                slug=slugify(title),
+                description=description,
+                rules=rules,
+                start_time=start_time,
+                end_time=end_time,
+                created_by=request.user,
+                is_public=is_public,
+                is_rated=is_rated,
+                max_participants=max_participants if max_participants else None,
+            )
+
+            messages.success(request, 'Contest added successfully.')
+            return redirect('allcontest')  # make sure this URL exists
+
+        return render(request, 'contest/addcontest.html')
     else:
         messages.error(request, 'You are not authorized to access this page.')
         return redirect('admin_login')
