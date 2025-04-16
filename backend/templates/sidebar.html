@@ -256,43 +256,54 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Handle dropdown toggles
             const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-            
+    
+            // Restore dropdown state from localStorage
             dropdownToggles.forEach(toggle => {
+                const targetId = toggle.getAttribute('data-target');
+                const dropdownMenu = document.getElementById(targetId);
+                const icon = toggle.querySelector('.fa-chevron-down');
+                const isOpen = localStorage.getItem(`dropdown-${targetId}`) === 'true';
+    
+                if (isOpen) {
+                    dropdownMenu.classList.add('show');
+                    icon.style.transform = 'rotate(180deg)';
+                }
+    
                 toggle.addEventListener('click', function () {
-                    const targetId = this.getAttribute('data-target');
-                    const dropdownMenu = document.getElementById(targetId);
-                    const icon = this.querySelector('.fa-chevron-down');
-                    
-                    // Toggle dropdown visibility
                     dropdownMenu.classList.toggle('show');
-                    
-                    // Rotate icon
-                    if (dropdownMenu.classList.contains('show')) {
-                        icon.style.transform = 'rotate(180deg)';
-                    } else {
-                        icon.style.transform = 'rotate(0)';
-                    }
+                    const isNowOpen = dropdownMenu.classList.contains('show');
+                    localStorage.setItem(`dropdown-${targetId}`, isNowOpen);
+    
+                    icon.style.transform = isNowOpen ? 'rotate(180deg)' : 'rotate(0)';
                 });
             });
-
-            // For toggling active state in sidebar links
+    
+            // Reset dropdown states when navigating to dashboard
+            const dashboardLink = document.querySelector("a[href='{% url 'dashboard_page' %}']");
+            if (dashboardLink) {
+                dashboardLink.addEventListener('click', function () {
+                    // Clear all dropdown-related states
+                    Object.keys(localStorage).forEach(key => {
+                        if (key.startsWith('dropdown-')) {
+                            localStorage.removeItem(key);
+                        }
+                    });
+                });
+            }
+    
+            // Handle sidebar active link highlight
             const sidebarLinks = document.querySelectorAll('.sidebar-link:not(.dropdown-toggle)');
-
             sidebarLinks.forEach(link => {
-                link.addEventListener('click', function (e) {
-                    // Don't apply to dropdown toggle buttons
-                    if (!this.classList.contains('dropdown-toggle')) {
-                        // Remove active class from all links
-                        sidebarLinks.forEach(l => l.classList.remove('active'));
-                        // Add active class to clicked link
-                        this.classList.add('active');
-                    }
+                link.addEventListener('click', function () {
+                    sidebarLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
                 });
             });
         });
     </script>
+    
+    
 </body>
 
 </html>
