@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -86,7 +87,7 @@
         }
     </style>
     <title>
-        Admin-PCCOJ | Dashboard
+        {% block title %}PCCOJ Admin{% endblock %}
     </title>
 </head>
 
@@ -113,7 +114,8 @@
 
                 <!-- Problems Management -->
                 <div class="mt-4">
-                    <button class="sidebar-link w-full flex justify-between dropdown-toggle" data-target="problems-dropdown">
+                    <button class="sidebar-link w-full flex justify-between dropdown-toggle"
+                        data-target="problems-dropdown">
                         <div class="flex items-center gap-3">
                             <i class="fas fa-puzzle-piece w-5 text-gray-100"></i>
                             <span class="text-gray-100 text-left">Problems Management</span>
@@ -121,24 +123,25 @@
                         <i class="fas fa-chevron-down transition-transform duration-300 text-white"></i>
                     </button>
                     <div id="problems-dropdown" class="dropdown-menu pl-4 pr-2">
-                        <a href="#" class="sidebar-link mt-1">
+                        <a href="{% url 'practice_problems_list' %}" class="sidebar-link mt-1">
                             <i class="fas fa-list w-5 text-gray-100"></i>
                             <span class="text-gray-100">Practice Problems</span>
                         </a>
                         <a href="#" class="sidebar-link mt-1">
                             <i class="fas fa-plus-circle w-5 text-gray-100"></i>
-                            <span class="text-gray-100">Add New Problem</span>
+                            <span class="text-gray-100">Contests Problem</span>
                         </a>
                         <a href="#" class="sidebar-link mt-1">
-                            <i class="fas fa-tags w-5 text-gray-100"></i>
-                            <span class="text-gray-100">Problem Tags</span>
+                            <i class="fas fa-chart-bar w-5 text-gray-100"></i>
+                            <span class="text-gray-100">Problem Analytics</span>
                         </a>
                     </div>
                 </div>
 
                 <!-- Contest Section -->
                 <div class="mt-2">
-                    <button class="sidebar-link w-full flex justify-between dropdown-toggle" data-target="contests-dropdown">
+                    <button class="sidebar-link w-full flex justify-between dropdown-toggle"
+                        data-target="contests-dropdown">
                         <div class="flex items-center gap-3">
                             <i class="fas fa-trophy w-5 text-gray-100"></i>
                             <span class="text-gray-100 text-left">Contest Management</span>
@@ -163,7 +166,8 @@
 
                 <!-- Submissions Section -->
                 <div class="mt-2">
-                    <button class="sidebar-link w-full flex justify-between dropdown-toggle" data-target="submissions-dropdown">
+                    <button class="sidebar-link w-full flex justify-between dropdown-toggle"
+                        data-target="submissions-dropdown">
                         <div class="flex items-center gap-3">
                             <i class="fas fa-code w-5 text-gray-100"></i>
                             <span class="text-gray-100">Submissions</span>
@@ -175,13 +179,14 @@
                             <i class="fas fa-list-ul w-5 text-gray-100"></i>
                             <span class="text-gray-100">All Submissions</span>
                         </a>
-                       
+
                     </div>
                 </div>
 
                 <!-- Users Section -->
                 <div class="mt-2">
-                    <button class="sidebar-link w-full flex justify-between dropdown-toggle" data-target="users-dropdown">
+                    <button class="sidebar-link w-full flex justify-between dropdown-toggle"
+                        data-target="users-dropdown">
                         <div class="flex items-center gap-3">
                             <i class="fas fa-users w-5 text-gray-100"></i>
                             <span class="text-gray-100">User Management</span>
@@ -202,7 +207,8 @@
 
                 <!-- Communication -->
                 <div class="mt-2">
-                    <button class="sidebar-link w-full flex justify-between dropdown-toggle" data-target="comm-dropdown">
+                    <button class="sidebar-link w-full flex justify-between dropdown-toggle"
+                        data-target="comm-dropdown">
                         <div class="flex items-center gap-3">
                             <i class="fas fa-bullhorn w-5 text-gray-100"></i>
                             <span class="text-gray-100">Communication</span>
@@ -226,7 +232,8 @@
             <div class="p-4 border-t border-gray-800 bg-sidebar-darker flex-shrink-0">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-2">
-                        <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+                        <div
+                            class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
                             A
                         </div>
                         <div>
@@ -238,8 +245,9 @@
                         <i class="fas fa-ellipsis-v"></i>
                     </a>
                 </div>
-               
-                <a href="{% url 'admin_logout' %}" class="sidebar-link bg-sidebar-hover w-full flex justify-center text-white hover:bg-red-700 transition-colors">
+
+                <a href="{% url 'admin_logout' %}"
+                    class="sidebar-link bg-sidebar-hover w-full flex justify-center text-white hover:bg-red-700 transition-colors">
                     <i class="fas fa-sign-out-alt mr-2"></i>
                     <span>Logout</span>
                 </a>
@@ -250,35 +258,41 @@
         <main class="ml-64 flex-1 p-6">
             {% block content %}
             <!-- Main content goes here -->
-             {% endblock %}
+            {% endblock %}
         </main>
     </div>
+
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-    
+
             // Restore dropdown state from localStorage
             dropdownToggles.forEach(toggle => {
                 const targetId = toggle.getAttribute('data-target');
                 const dropdownMenu = document.getElementById(targetId);
                 const icon = toggle.querySelector('.fa-chevron-down');
                 const isOpen = localStorage.getItem(`dropdown-${targetId}`) === 'true';
-    
+
                 if (isOpen) {
                     dropdownMenu.classList.add('show');
                     icon.style.transform = 'rotate(180deg)';
                 }
-    
+
                 toggle.addEventListener('click', function () {
                     dropdownMenu.classList.toggle('show');
                     const isNowOpen = dropdownMenu.classList.contains('show');
                     localStorage.setItem(`dropdown-${targetId}`, isNowOpen);
-    
+
                     icon.style.transform = isNowOpen ? 'rotate(180deg)' : 'rotate(0)';
                 });
             });
-    
+
             // Reset dropdown states when navigating to dashboard
             const dashboardLink = document.querySelector("a[href='{% url 'dashboard_page' %}']");
             if (dashboardLink) {
@@ -291,7 +305,7 @@
                     });
                 });
             }
-    
+
             // Handle sidebar active link highlight
             const sidebarLinks = document.querySelectorAll('.sidebar-link:not(.dropdown-toggle)');
             sidebarLinks.forEach(link => {
@@ -302,8 +316,8 @@
             });
         });
     </script>
-    
-    
+
+
 </body>
 
 </html>

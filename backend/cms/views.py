@@ -129,12 +129,6 @@ def deletecontest(request, contest_id):
     contest.delete()
     messages.success(request, 'Contest deleted successfully.')
     return redirect('allcontest')
-
-
-
-
-
-
     
 def addcontest(request):
     if request.user.is_staff:
@@ -174,3 +168,223 @@ def addcontest(request):
     else:
         messages.error(request, 'You are not authorized to access this page.')
         return redirect('admin_login')
+    
+
+
+# Practice Problem Management page
+@login_required(login_url='admin_login')
+def practice_problems_list(request):
+    if request.user.is_staff:
+        problems = PracticeProblem.objects.all()
+        context = {
+            'problems': problems
+        }
+        return render(request, 'practice/practice_problems_list.html', context)
+    else:
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('home')
+    
+
+@login_required(login_url='admin_login')
+def addpracticeproblem(request):
+    if request.user.is_staff:
+        if request.method == 'POST':
+            title = request.POST.get('title')
+            # Generate slug from title
+            slug = slugify(title)
+            statement = request.POST.get('statement')
+            input_format = request.POST.get('input_format')
+            output_format = request.POST.get('output_format')
+            constraints = request.POST.get('constraints')
+            sample_input = request.POST.get('sample_input')
+            sample_output = request.POST.get('sample_output')
+            explanation = request.POST.get('explanation')
+            time_limit = request.POST.get('time_limit', 1.0)
+            memory_limit = request.POST.get('memory_limit', 256)
+            difficulty = request.POST.get('difficulty')
+            points = request.POST.get('points', 100)
+            editorial = request.POST.get('editorial')
+            is_featured = request.POST.get('is_featured') == 'on'
+            is_visible = request.POST.get('is_visible') == 'on'
+            
+            # Create the problem
+            problem = PracticeProblem.objects.create(
+                title=title,
+                slug=slug,
+                statement=statement,
+                input_format=input_format,
+                output_format=output_format,
+                constraints=constraints,
+                sample_input=sample_input,
+                sample_output=sample_output,
+                explanation=explanation,
+                time_limit=time_limit,
+                memory_limit=memory_limit,
+                difficulty=difficulty,
+                points=points,
+                editorial=editorial,
+                is_featured=is_featured,
+                is_visible=is_visible
+            )
+            
+            # Handle tags from multi-select
+            selected_tags = request.POST.getlist('tags')
+            for tag_id in selected_tags:
+                tag = ProblemTag.objects.get(id=tag_id)
+                problem.tags.add(tag)
+            
+            # Handle testcases
+            sample_testcase_input = request.POST.get('sample_testcase_input')
+            sample_testcase_output = request.POST.get('sample_testcase_output')
+            
+            if sample_testcase_input and sample_testcase_output:
+                PracticeTestcase.objects.create(
+                    problem=problem,
+                    input=sample_testcase_input,
+                    output=sample_testcase_output,
+                    is_sample=True
+                )
+            
+            # Handle non-sample testcases
+            testcase_count = int(request.POST.get('testcase_count', 0))
+            for i in range(testcase_count):
+                testcase_input = request.POST.get(f'testcase_input_{i}')
+                testcase_output = request.POST.get(f'testcase_output_{i}')
+                testcase_points = request.POST.get(f'testcase_points_{i}', 0)
+                
+                if testcase_input and testcase_output:
+                    PracticeTestcase.objects.create(
+                        problem=problem,
+                        input=testcase_input,
+                        output=testcase_output,
+                        is_sample=False,
+                        points=testcase_points
+                    )
+            
+            messages.success(request, 'Practice problem created successfully!')
+            return redirect('practice_problems_list')  
+        else:
+            # Display the empty form
+            difficulty_choices = PracticeProblem.DIFFICULTY_CHOICES
+            # Get all available tags
+            all_tags = ProblemTag.objects.all()
+            context = {
+                'difficulty_choices': difficulty_choices,
+                'all_tags': all_tags,
+                'mode': 'add'
+            }
+            return render(request, 'practice/practice_problem_form.html', context)
+    else:
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard_page')
+
+
+@login_required(login_url='admin_login')
+def updatepracticeproblem(request, problem_id):
+    if request.user.is_staff:
+        problem = get_object_or_404(PracticeProblem, id=problem_id)
+        
+        if request.method == 'POST':
+            # Update the problem fields
+            problem.title = request.POST.get('title')
+            problem.slug = slugify(request.POST.get('title'))
+            problem.statement = request.POST.get('statement')
+            problem.input_format = request.POST.get('input_format')
+            problem.output_format = request.POST.get('output_format')
+            problem.constraints = request.POST.get('constraints')
+            problem.sample_input = request.POST.get('sample_input')
+            problem.sample_output = request.POST.get('sample_output')
+            problem.explanation = request.POST.get('explanation')
+            problem.time_limit = request.POST.get('time_limit', 1.0)
+            problem.memory_limit = request.POST.get('memory_limit', 256)
+            problem.difficulty = request.POST.get('difficulty')
+            problem.points = request.POST.get('points', 100)
+            problem.editorial = request.POST.get('editorial')
+            problem.is_featured = request.POST.get('is_featured') == 'on'
+            problem.is_visible = request.POST.get('is_visible') == 'on'
+            
+            problem.save()
+            
+            # Update tags
+            problem.tags.clear()
+            selected_tags = request.POST.getlist('tags')
+            for tag_id in selected_tags:
+                tag = ProblemTag.objects.get(id=tag_id)
+                problem.tags.add(tag)
+            
+            
+            problem.testcases.all().delete()
+            
+            # Add sample testcase
+            sample_testcase_input = request.POST.get('sample_testcase_input')
+            sample_testcase_output = request.POST.get('sample_testcase_output')
+            
+            if sample_testcase_input and sample_testcase_output:
+                PracticeTestcase.objects.create(
+                    problem=problem,
+                    input=sample_testcase_input,
+                    output=sample_testcase_output,
+                    is_sample=True
+                )
+            
+            # Add non-sample testcases
+            testcase_count = int(request.POST.get('testcase_count', 0))
+            for i in range(testcase_count):
+                testcase_input = request.POST.get(f'testcase_input_{i}')
+                testcase_output = request.POST.get(f'testcase_output_{i}')
+                testcase_points = request.POST.get(f'testcase_points_{i}', 0)
+                
+                if testcase_input and testcase_output:
+                    PracticeTestcase.objects.create(
+                        problem=problem,
+                        input=testcase_input,
+                        output=testcase_output,
+                        is_sample=False,
+                        points=testcase_points
+                    )
+            
+            messages.success(request, 'Practice problem updated successfully!')
+            return redirect('practice_problems_list')  
+        else:
+            
+            difficulty_choices = PracticeProblem.DIFFICULTY_CHOICES
+            
+            
+            all_tags = ProblemTag.objects.all()
+            
+            
+            sample_testcase = problem.testcases.filter(is_sample=True).first()
+            other_testcases = problem.testcases.filter(is_sample=False)
+            
+            context = {
+                'problem': problem,
+                'difficulty_choices': difficulty_choices,
+                'all_tags': all_tags,
+                'sample_testcase': sample_testcase,
+                'other_testcases': other_testcases,
+                'mode': 'edit'
+            }
+            return render(request, 'practice/practice_problem_form.html', context)
+    else:
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard_page')
+
+@login_required(login_url='admin_login')
+def deletepracticeproblem(request, problem_id):
+    if request.user.is_staff:
+        problem = get_object_or_404(PracticeProblem, id=problem_id)
+        
+        if request.method == 'POST':
+            
+            problem.delete()
+            messages.success(request, 'Practice problem deleted successfully!')
+            return redirect('practice_problems_list')
+        else:
+          
+            context = {
+                'problem': problem
+            }
+            return render(request, 'practice/practice_problem_confirm_delete.html', context)
+    else:
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard_page')   

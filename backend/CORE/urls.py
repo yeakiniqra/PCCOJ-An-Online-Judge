@@ -57,6 +57,12 @@ urlpatterns = [
     path('addcontest/', addcontest, name='addcontest'),
     path('contest/edit/<int:contest_id>/', editcontest, name='editcontest'),
     path('contest/delete/<int:contest_id>/', deletecontest, name='deletecontest'),
+
+    # Practice Problem urls
+    path('practice-problems/', practice_problems_list, name='practice_problems_list'),
+    path('practice-problems/add/', addpracticeproblem, name='addpracticeproblem'),
+    path('practice-problems/<int:problem_id>/update/', updatepracticeproblem, name='updatepracticeproblem'),
+    path('practice-problems/<int:problem_id>/delete/', deletepracticeproblem, name='deletepracticeproblem'),
 ]
 
 if settings.DEBUG:
