@@ -63,6 +63,7 @@ urlpatterns = [
     path('practice-problems/add/', addpracticeproblem, name='addpracticeproblem'),
     path('practice-problems/<int:problem_id>/update/', updatepracticeproblem, name='updatepracticeproblem'),
     path('practice-problems/<int:problem_id>/delete/', deletepracticeproblem, name='deletepracticeproblem'),
+    path('contest-problems/', contest_problems_list, name='contest_problems_list'),
 ]
 
 if settings.DEBUG:

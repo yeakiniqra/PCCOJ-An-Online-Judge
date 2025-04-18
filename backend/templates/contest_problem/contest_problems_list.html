@@ -1,0 +1,176 @@
+{% extends 'sidebar.html' %}
+{% block title %}Contest Problems{% endblock %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-indigo-800 flex items-center">
+            <i class="fas fa-trophy mr-3 text-indigo-600"></i>Contest Problems
+        </h1>
+        <a href="#" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg flex items-center transition duration-200">
+            <i class="fas fa-plus-circle mr-2"></i> Add New Problem
+        </a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="bg-indigo-600 px-6 py-4 text-white flex justify-between items-center">
+            <div>
+                <h2 class="text-xl font-semibold">Problem List</h2>
+                <p class="text-indigo-200 text-sm">Manage your contest problems</p>
+            </div>
+            <!-- Optional Search Box -->
+            <div class="relative">
+                <input type="text" id="problemSearch" placeholder="Search problems..." 
+                    class="bg-indigo-700 text-white placeholder-indigo-300 px-4 py-2 rounded-lg border border-indigo-500 focus:outline-none focus:ring-2 focus:ring-white">
+                <i class="fas fa-search absolute right-3 top-3 text-indigo-300"></i>
+            </div>
+        </div>
+
+        <div class="p-6">
+            {% if problems %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-heading mr-2"></i>Title
+                                    </div>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-chart-line mr-2"></i>Difficulty
+                                    </div>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-star mr-2"></i>Points
+                                    </div>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-code mr-2"></i>Submissions
+                                    </div>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-check-circle mr-2"></i>Acceptance
+                                    </div>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-eye mr-2"></i>Visible
+                                    </div>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center justify-center">
+                                        <i class="fas fa-cog mr-2"></i>Actions
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for problem in problems %}
+                                <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">{{ problem.title }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                                        {% if problem.difficulty == 'Easy' %}bg-green-100 text-green-800
+                                        {% elif problem.difficulty == 'Medium' %}bg-blue-100 text-blue-800
+                                        {% elif problem.difficulty == 'Hard' %}bg-orange-100 text-orange-800
+                                        {% else %}bg-red-100 text-red-800{% endif %}">
+                                            {{ problem.difficulty }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-trophy text-yellow-500 mr-2"></i>
+                                            {{ problem.points }}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-paper-plane text-blue-500 mr-2"></i>
+                                            {{ problem.submission_count }}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <div class="flex items-center
+                                        {% if problem.acceptance_rate > 75 %}text-green-600
+                                        {% elif problem.acceptance_rate > 50 %}text-blue-600
+                                        {% elif problem.acceptance_rate > 25 %}text-yellow-600
+                                        {% else %}text-red-600{% endif %}">
+                                            <i class="fas fa-percentage mr-2"></i>
+                                            {{ problem.acceptance_rate|floatformat:1 }}%
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        {% if problem.is_visible %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                <i class="fas fa-eye mr-1"></i> Yes
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                <i class="fas fa-eye-slash mr-1"></i> No
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                        <div class="flex justify-center space-x-2">
+                                            <a href="#" class="text-indigo-600 hover:text-indigo-900 bg-indigo-100 hover:bg-indigo-200 p-2 rounded-md transition duration-200">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="#" class="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 p-2 rounded-md transition duration-200"
+                                               onclick="return confirm('Are you sure you want to delete this problem?')">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded flex items-center">
+                    <i class="fas fa-info-circle text-2xl mr-4 text-blue-500"></i>
+                    <div>
+                        <p class="font-medium">No problems found</p>
+                        <p class="text-sm">No contest problems have been created yet.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+<!-- Optional JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('problemSearch');
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            const searchText = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('tbody tr');
+            
+            tableRows.forEach(row => {
+                const title = row.querySelector('td:first-child').textContent.toLowerCase();
+                if (title.includes(searchText)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

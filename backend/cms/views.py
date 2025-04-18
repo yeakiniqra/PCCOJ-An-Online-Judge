@@ -388,3 +388,16 @@ def deletepracticeproblem(request, problem_id):
     else:
         messages.error(request, 'You do not have permission to access this page.')
         return redirect('dashboard_page')   
+    
+
+@login_required(login_url='admin_login')
+def contest_problems_list(request):
+    if request.user.is_staff:
+        problems = Problem.objects.filter(is_visible=True)  # Fetch all visible contest problems
+        context = {
+            'problems': problems
+        }
+        return render(request, 'contest_problem/contest_problems_list.html', context)
+    else:
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('home')
