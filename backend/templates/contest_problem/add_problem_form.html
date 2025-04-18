@@ -1,0 +1,133 @@
+{% extends 'sidebar.html' %}
+
+{% block title %}
+    {% if mode == 'add' %}
+        Add Problem
+    {% else %}
+        Edit Problem
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex justify-center items-center py-10">
+    <div class="bg-white w-full max-w-4xl p-8 rounded-lg shadow-lg space-y-6">
+        <h2 class="text-3xl font-semibold text-center text-blue-600">
+            {% if mode == 'add' %} Add New Problem {% else %} Edit Problem {% endif %}
+        </h2>
+
+        <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Contest Selection -->
+            <div class="flex flex-col">
+                <label for="contest_id" class="font-medium text-gray-700">Select Contest</label>
+                <select name="contest_id" id="contest_id" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500" required>
+                    <option value="" disabled {% if not problem.contest.id %}selected{% endif %}>--Select Contest--</option>
+                    {% for contest in contests %}
+                        <option value="{{ contest.id }}" {% if mode == 'edit' and contest.id == problem.contest.id %}selected{% endif %}>{{ contest.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Title -->
+            <div class="flex flex-col">
+                <label for="title" class="font-medium text-gray-700">Title</label>
+                <input type="text" id="title" name="title" value="{% if mode == 'edit' %}{{ problem.title }}{% endif %}" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500" required>
+            </div>
+
+            <!-- Statement -->
+            <div class="flex flex-col">
+                <label for="statement" class="font-medium text-gray-700">Statement</label>
+                <textarea id="statement" name="statement" rows="5" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500" required>{% if mode == 'edit' %}{{ problem.statement }}{% endif %}</textarea>
+            </div>
+
+            <!-- Input Format -->
+            <div class="flex flex-col">
+                <label for="input_format" class="font-medium text-gray-700">Input Format</label>
+                <textarea id="input_format" name="input_format" rows="3" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500" required>{% if mode == 'edit' %}{{ problem.input_format }}{% endif %}</textarea>
+            </div>
+
+            <!-- Output Format -->
+            <div class="flex flex-col">
+                <label for="output_format" class="font-medium text-gray-700">Output Format</label>
+                <textarea id="output_format" name="output_format" rows="3" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500" required>{% if mode == 'edit' %}{{ problem.output_format }}{% endif %}</textarea>
+            </div>
+
+            <!-- Constraints -->
+            <div class="flex flex-col">
+                <label for="constraints" class="font-medium text-gray-700">Constraints</label>
+                <textarea id="constraints" name="constraints" rows="3" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500">{% if mode == 'edit' %}{{ problem.constraints }}{% endif %}</textarea>
+            </div>
+
+            <!-- Sample Input -->
+            <div class="flex flex-col">
+                <label for="sample_input" class="font-medium text-gray-700">Sample Input</label>
+                <textarea id="sample_input" name="sample_input" rows="3" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500" required>{% if mode == 'edit' %}{{ problem.sample_input }}{% endif %}</textarea>
+            </div>
+
+            <!-- Sample Output -->
+            <div class="flex flex-col">
+                <label for="sample_output" class="font-medium text-gray-700">Sample Output</label>
+                <textarea id="sample_output" name="sample_output" rows="3" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500" required>{% if mode == 'edit' %}{{ problem.sample_output }}{% endif %}</textarea>
+            </div>
+
+            <!-- Explanation -->
+            <div class="flex flex-col">
+                <label for="explanation" class="font-medium text-gray-700">Explanation</label>
+                <textarea id="explanation" name="explanation" rows="3" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500">{% if mode == 'edit' %}{{ problem.explanation }}{% endif %}</textarea>
+            </div>
+
+            <!-- Time Limit -->
+            <div class="flex flex-col">
+                <label for="time_limit" class="font-medium text-gray-700">Time Limit (seconds)</label>
+                <input type="number" id="time_limit" name="time_limit" value="{% if mode == 'edit' %}{{ problem.time_limit }}{% else %}1.0{% endif %}" step="0.1" min="0.1" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500" required>
+            </div>
+
+            <!-- Memory Limit -->
+            <div class="flex flex-col">
+                <label for="memory_limit" class="font-medium text-gray-700">Memory Limit (MB)</label>
+                <input type="number" id="memory_limit" name="memory_limit" value="{% if mode == 'edit' %}{{ problem.memory_limit }}{% else %}256{% endif %}" min="1" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500" required>
+            </div>
+
+            <!-- Difficulty -->
+            <div class="flex flex-col">
+                <label for="difficulty" class="font-medium text-gray-700">Difficulty</label>
+                <select name="difficulty" id="difficulty" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500" required>
+                    {% for value, label in difficulty_choices %}
+                        <option value="{{ value }}" {% if mode == 'edit' and value == problem.difficulty %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Points -->
+            <div class="flex flex-col">
+                <label for="points" class="font-medium text-gray-700">Points</label>
+                <input type="number" id="points" name="points" value="{% if mode == 'edit' %}{{ problem.points }}{% else %}100{% endif %}" min="1" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500" required>
+            </div>
+
+            <!-- Visibility -->
+            <div class="flex items-center space-x-3">
+                <input type="checkbox" id="is_visible" name="is_visible" class="form-checkbox text-blue-600" {% if mode == 'add' or problem.is_visible %}checked{% endif %}>
+                <label for="is_visible" class="font-medium text-gray-700">Visible</label>
+            </div>
+
+            <!-- Tags -->
+            <div class="flex flex-col">
+                <label for="tags" class="font-medium text-gray-700">Tags</label>
+                <select name="tags" id="tags" multiple class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500">
+                    {% for tag in all_tags %}
+                        <option value="{{ tag.id }}" {% if mode == 'edit' and tag in problem.tags.all %}selected{% endif %}>{{ tag.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="text-center">
+                <button type="submit" class="bg-blue-600 text-white font-semibold py-3 px-6 rounded-full hover:bg-blue-700 transition duration-300">
+                    {% if mode == 'add' %} Add Problem {% else %} Update Problem {% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

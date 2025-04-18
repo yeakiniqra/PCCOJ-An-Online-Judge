@@ -63,7 +63,13 @@ urlpatterns = [
     path('practice-problems/add/', addpracticeproblem, name='addpracticeproblem'),
     path('practice-problems/<int:problem_id>/update/', updatepracticeproblem, name='updatepracticeproblem'),
     path('practice-problems/<int:problem_id>/delete/', deletepracticeproblem, name='deletepracticeproblem'),
+
+
+    # Contest Problem urls
+    path('contest-problems/add/', addproblem, name='add_problem'),
     path('contest-problems/', contest_problems_list, name='contest_problems_list'),
+    path('contest-problems/<int:problem_id>/delete/', delete_problem, name='delete_problem'),
+    path('contest-problems/<int:problem_id>/update/', edit_problem, name='edit_problem'),
 ]
 
 if settings.DEBUG:

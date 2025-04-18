@@ -401,3 +401,131 @@ def contest_problems_list(request):
     else:
         messages.error(request, 'You do not have permission to access this page.')
         return redirect('home')
+    
+
+
+@login_required(login_url='admin_login')
+def addproblem(request):
+    if request.user.is_staff:
+        if request.method == 'POST':
+            title = request.POST.get('title')
+            slug = slugify(title)
+            statement = request.POST.get('statement')
+            input_format = request.POST.get('input_format')
+            output_format = request.POST.get('output_format')
+            constraints = request.POST.get('constraints')
+            sample_input = request.POST.get('sample_input')
+            sample_output = request.POST.get('sample_output')
+            explanation = request.POST.get('explanation')
+            time_limit = float(request.POST.get('time_limit', 1.0))
+            memory_limit = int(request.POST.get('memory_limit', 256))
+            difficulty = request.POST.get('difficulty')
+            points = int(request.POST.get('points', 100))
+            is_visible = request.POST.get('is_visible') == 'on'
+
+            contest_id = request.POST.get('contest_id')
+            contest = get_object_or_404(Contest, id=contest_id)
+
+            problem = Problem.objects.create(
+                title=title,
+                slug=slug,
+                statement=statement,
+                input_format=input_format,
+                output_format=output_format,
+                constraints=constraints,
+                sample_input=sample_input,
+                sample_output=sample_output,
+                explanation=explanation,
+                time_limit=time_limit,
+                memory_limit=memory_limit,
+                difficulty=difficulty,
+                points=points,
+                is_visible=is_visible,
+                contest=contest
+            )
+
+            # Tags
+            selected_tags = request.POST.getlist('tags')
+            for tag_id in selected_tags:
+                tag = ProblemTag.objects.get(id=tag_id)
+                problem.tags.add(tag)
+
+            messages.success(request, 'Problem added successfully!')
+            return redirect('contest_problems_list')
+
+        else:
+            # Render empty form
+            contests = Contest.objects.all()
+            all_tags = ProblemTag.objects.all()
+            difficulty_choices = Problem.DIFFICULTY_CHOICES
+            context = {
+                'mode': 'add',
+                'contests': contests,
+                'all_tags': all_tags,
+                'difficulty_choices': difficulty_choices,
+            }
+            return render(request, 'contest_problem/add_problem_form.html', context)
+    else:
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('home')
+    
+
+
+@login_required(login_url='admin_login')
+def edit_problem(request, problem_id):
+    if request.user.is_staff:
+        problem = get_object_or_404(Problem, id=problem_id)
+        if request.method == 'POST':
+            problem.title = request.POST.get('title')
+            problem.slug = slugify(problem.title)
+            problem.statement = request.POST.get('statement')
+            problem.input_format = request.POST.get('input_format')
+            problem.output_format = request.POST.get('output_format')
+            problem.constraints = request.POST.get('constraints')
+            problem.sample_input = request.POST.get('sample_input')
+            problem.sample_output = request.POST.get('sample_output')
+            problem.explanation = request.POST.get('explanation')
+            problem.time_limit = float(request.POST.get('time_limit', 1.0))
+            problem.memory_limit = int(request.POST.get('memory_limit', 256))
+            problem.difficulty = request.POST.get('difficulty')
+            problem.points = int(request.POST.get('points', 100))
+            problem.is_visible = request.POST.get('is_visible') == 'on'
+            
+            problem.save()
+
+            # Handle tags
+            selected_tags = request.POST.getlist('tags')
+            problem.tags.clear()  # Remove all existing tags
+            for tag_id in selected_tags:
+                tag = ProblemTag.objects.get(id=tag_id)
+                problem.tags.add(tag)
+
+            messages.success(request, 'Problem updated successfully!')
+            return redirect('contest_problems', contest_id=problem.contest.id)
+        else:
+            # Display the form to edit the problem
+            difficulty_choices = Problem.DIFFICULTY_CHOICES
+            all_tags = ProblemTag.objects.all()
+            context = {
+                'problem': problem,
+                'difficulty_choices': difficulty_choices,
+                'all_tags': all_tags,
+                'mode': 'edit'
+            }
+            return render(request, 'contest_problem/add_problem_form.html', context)
+    else:
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('home')    
+    
+
+
+@login_required(login_url='admin_login')
+def delete_problem(request, problem_id):
+    if request.user.is_staff:
+        problem = get_object_or_404(Problem, id=problem_id)
+        problem.delete()
+        messages.success(request, 'Problem deleted successfully!')
+        return redirect('contest_problems_list')  # Corrected redirect
+    else:
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('home')
