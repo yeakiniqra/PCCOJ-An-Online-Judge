@@ -1,17 +1,16 @@
 {% extends 'sidebar.html' %}
 
-{% block title %}Admin-PCCOJ | All Contests{% endblock %}
+{% block title %}All Contests{% endblock %}
 
 {% block content %}
-<div class="px-4 py-6">
+<div class="container mx-auto px-4 py-8">
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-800">All Contests</h1>
-            <p class="text-gray-600 mt-1">Manage, edit or delete ongoing and past contests</p>
-        </div>
-        <a href="{% url 'addcontest' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-            <i class="fas fa-plus"></i> New Contest
+        <h1 class="text-2xl font-bold text-indigo-800 flex items-center">
+            <i class="fas fa-calendar-alt mr-3 text-indigo-600"></i>All Contests
+        </h1>
+        <a href="{% url 'addcontest' %}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg flex items-center transition duration-200">
+            <i class="fas fa-plus-circle mr-2"></i> Add New Contest
         </a>
     </div>
 
@@ -26,66 +25,135 @@
     </div>
     {% endif %}
 
-    
-   
+    <!-- Main Content -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="bg-indigo-600 px-6 py-4 text-white flex justify-between items-center">
+            <div>
+                <h2 class="text-xl font-semibold">Contest List</h2>
+                <p class="text-indigo-200 text-sm">Manage your contests</p>
+            </div>
+            <!-- Optional Search Box -->
+            <div class="relative">
+                <input type="text" id="contestSearch" placeholder="Search contests..." 
+                    class="bg-indigo-700 text-white placeholder-indigo-300 px-4 py-2 rounded-lg border border-indigo-500 focus:outline-none focus:ring-2 focus:ring-white">
+                <i class="fas fa-search absolute right-3 top-3 text-indigo-300"></i>
+            </div>
+        </div>
 
-
-
-
-
-
-
-    <!-- Contest Table -->
-    {% if contests %}
-    <div class="bg-white border border-gray-200 shadow-sm rounded-lg overflow-x-auto">
-        <table class="min-w-full text-sm text-left">
-            <thead class="bg-gray-100 border-b text-gray-700">
-                <tr>
-                    <th class="px-4 py-3">ID</th>
-                    <th class="px-4 py-3">Title</th>
-                    <th class="px-4 py-3">Status</th>
-                    <th class="px-4 py-3">Start Time</th>
-                    <th class="px-4 py-3">End Time</th>
-                    <th class="px-4 py-3">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                {% for contest in contests %}
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-3 font-medium text-gray-800">{{ contest.id }}</td>
-                    <td class="px-4 py-3 text-gray-700">{{ contest.title }}</td>
-                    <td class="px-4 py-3">
-                        <span class="inline-block px-2 py-1 rounded-full text-xs font-semibold 
-                            {% if contest.status == 'ongoing' %}
-                                bg-gradient-to-r from-green-500 to-emerald-400 text-white
-                            {% elif contest.status == 'upcoming' %}
-                                bg-gradient-to-r from-blue-500 to-cyan-400 text-white
-                            {% elif contest.status == 'ended' %}
-                                bg-gradient-to-r from-purple-500 to-indigo-400 text-white    
-                            {% else %}
-                                bg-gradient-to-r from-gray-500 to-gray-400 text-white
-                            {% endif %}">
-                            {{ contest.status }}
-                        </span>
-                    </td>
-                    <td class="px-4 py-3 text-gray-600">{{ contest.start_time }}</td>
-                    <td class="px-4 py-3 text-gray-600">{{ contest.end_time }}</td>
-                    <td class="px-4 py-3">
-                        <a href="/contest/edit/{{ contest.id }}" class="text-blue-600 hover:underline mr-2">Edit</a>
-                        <a href="/contest/delete/{{ contest.id }}" class="text-red-600 hover:underline"
-                            onclick="return confirm('Are you sure you want to delete this contest?');">
-                            Delete
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="p-6">
+            {% if contests %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-hashtag mr-2"></i>ID
+                                    </div>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-heading mr-2"></i>Title
+                                    </div>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-info-circle mr-2"></i>Status
+                                    </div>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-clock mr-2"></i>Start Time
+                                    </div>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-clock mr-2"></i>End Time
+                                    </div>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center justify-center">
+                                        <i class="fas fa-cog mr-2"></i>Actions
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for contest in contests %}
+                                <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">{{ contest.id }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">{{ contest.title }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                                        {% if contest.status == 'ongoing' %}bg-green-100 text-green-800
+                                        {% elif contest.status == 'upcoming' %}bg-blue-100 text-blue-800
+                                        {% elif contest.status == 'ended' %}bg-purple-100 text-purple-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                            {{ contest.status }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {{ contest.start_time }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {{ contest.end_time }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                        <div class="flex justify-center space-x-2">
+                                            <a href="/contest/edit/{{ contest.id }}" class="text-indigo-600 hover:text-indigo-900 bg-indigo-100 hover:bg-indigo-200 p-2 rounded-md transition duration-200">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="/contest/delete/{{ contest.id }}" class="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 p-2 rounded-md transition duration-200"
+                                               onclick="return confirm('Are you sure you want to delete this contest?')">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded flex items-center">
+                    <i class="fas fa-info-circle text-2xl mr-4 text-blue-500"></i>
+                    <div>
+                        <p class="font-medium">No contests found</p>
+                        <p class="text-sm">No contests have been created yet. Click "Add New Contest" to create one.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
     </div>
-    {% else %}
-    <div class="mt-4 text-center text-gray-500 text-sm">
-        No contests available.
-    </div>
-    {% endif %}
 </div>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+<!-- Optional JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality
+    const searchInput = document.getElementById('contestSearch');
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            const searchText = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('tbody tr');
+            
+            tableRows.forEach(row => {
+                const title = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                if (title.includes(searchText)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+});
+</script>
 {% endblock %}
