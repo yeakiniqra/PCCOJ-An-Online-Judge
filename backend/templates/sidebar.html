@@ -157,7 +157,7 @@
                             <i class="fas fa-calendar-plus w-5 text-gray-100"></i>
                             <span class="text-gray-100">Create Contest</span>
                         </a>
-                        <a href="#" class="sidebar-link mt-1">
+                        <a href="{% url 'contest_analytics' %}" class="sidebar-link mt-1">
                             <i class="fas fa-chart-line w-5 text-gray-100"></i>
                             <span class="text-gray-100">Contest Analytics</span>
                         </a>
@@ -175,7 +175,7 @@
                         <i class="fas fa-chevron-down transition-transform duration-300 text-white"></i>
                     </button>
                     <div id="submissions-dropdown" class="dropdown-menu pl-4 pr-2">
-                        <a href="#" class="sidebar-link mt-1">
+                        <a href="{% url 'all_submission' %}" class="sidebar-link mt-1">
                             <i class="fas fa-list-ul w-5 text-gray-100"></i>
                             <span class="text-gray-100">All Submissions</span>
                         </a>

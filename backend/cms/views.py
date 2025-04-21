@@ -5,6 +5,8 @@ from django.contrib import messages
 from .models import *
 from django.utils.dateparse import parse_datetime
 from django.utils.text import slugify
+from django.utils import timezone
+from django.db.models import Count, Avg
 
 
 
@@ -393,7 +395,7 @@ def deletepracticeproblem(request, problem_id):
 @login_required(login_url='admin_login')
 def contest_problems_list(request):
     if request.user.is_staff:
-        problems = Problem.objects.filter(is_visible=True)  # Fetch all visible contest problems
+        problems = Problem.objects.filter(is_visible=True)  
         context = {
             'problems': problems
         }
@@ -450,11 +452,36 @@ def addproblem(request):
                 tag = ProblemTag.objects.get(id=tag_id)
                 problem.tags.add(tag)
 
+            # Sample testcase
+            sample_testcase_input = request.POST.get('sample_testcase_input')
+            sample_testcase_output = request.POST.get('sample_testcase_output')
+            if sample_testcase_input and sample_testcase_output:
+                Testcase.objects.create(
+                    problem=problem,
+                    input=sample_testcase_input,
+                    output=sample_testcase_output,
+                    is_sample=True
+                )
+
+            # Other testcases
+            testcase_count = int(request.POST.get('testcase_count', 0))
+            for i in range(testcase_count):
+                testcase_input = request.POST.get(f'testcase_input_{i}')
+                testcase_output = request.POST.get(f'testcase_output_{i}')
+                testcase_points = request.POST.get(f'testcase_points_{i}', 0)
+                if testcase_input and testcase_output:
+                    Testcase.objects.create(
+                        problem=problem,
+                        input=testcase_input,
+                        output=testcase_output,
+                        is_sample=False,
+                        points=testcase_points
+                    )
+
             messages.success(request, 'Problem added successfully!')
             return redirect('contest_problems_list')
 
         else:
-            # Render empty form
             contests = Contest.objects.all()
             all_tags = ProblemTag.objects.all()
             difficulty_choices = Problem.DIFFICULTY_CHOICES
@@ -468,14 +495,19 @@ def addproblem(request):
     else:
         messages.error(request, 'You do not have permission to access this page.')
         return redirect('home')
-    
+
 
 
 @login_required(login_url='admin_login')
 def edit_problem(request, problem_id):
     if request.user.is_staff:
-        problem = get_object_or_404(Problem, id=problem_id)
+        problem = get_object_or_404(Problem.objects.select_related('contest'), id=problem_id)
+        contests = Contest.objects.all()
+
         if request.method == 'POST':
+            contest_id = request.POST.get('contest_id')
+            if contest_id:
+                problem.contest = get_object_or_404(Contest, id=contest_id)
             problem.title = request.POST.get('title')
             problem.slug = slugify(problem.title)
             problem.statement = request.POST.get('statement')
@@ -490,32 +522,68 @@ def edit_problem(request, problem_id):
             problem.difficulty = request.POST.get('difficulty')
             problem.points = int(request.POST.get('points', 100))
             problem.is_visible = request.POST.get('is_visible') == 'on'
-            
+
             problem.save()
 
-            # Handle tags
+            # Tags
             selected_tags = request.POST.getlist('tags')
-            problem.tags.clear()  # Remove all existing tags
+            problem.tags.clear()
             for tag_id in selected_tags:
                 tag = ProblemTag.objects.get(id=tag_id)
                 problem.tags.add(tag)
 
+            # Delete existing testcases
+            problem.testcases.all().delete()
+
+            # Sample testcase
+            sample_testcase_input = request.POST.get('sample_testcase_input')
+            sample_testcase_output = request.POST.get('sample_testcase_output')
+            if sample_testcase_input and sample_testcase_output:
+                Testcase.objects.create(
+                    problem=problem,
+                    input=sample_testcase_input,
+                    output=sample_testcase_output,
+                    is_sample=True
+                )
+
+            # Other testcases
+            testcase_count = int(request.POST.get('testcase_count', 0))
+            for i in range(testcase_count):
+                testcase_input = request.POST.get(f'testcase_input_{i}')
+                testcase_output = request.POST.get(f'testcase_output_{i}')
+                testcase_points = request.POST.get(f'testcase_points_{i}', 0)
+                if testcase_input and testcase_output:
+                    Testcase.objects.create(
+                        problem=problem,
+                        input=testcase_input,
+                        output=testcase_output,
+                        is_sample=False,
+                        points=testcase_points
+                    )
+
             messages.success(request, 'Problem updated successfully!')
-            return redirect('contest_problems', contest_id=problem.contest.id)
+            return redirect('contest_problems_list')
+
+
         else:
-            # Display the form to edit the problem
             difficulty_choices = Problem.DIFFICULTY_CHOICES
             all_tags = ProblemTag.objects.all()
+            sample_testcase = problem.testcases.filter(is_sample=True).first()
+            other_testcases = problem.testcases.filter(is_sample=False)
             context = {
                 'problem': problem,
                 'difficulty_choices': difficulty_choices,
                 'all_tags': all_tags,
+                'sample_testcase': sample_testcase,
+                'contests': contests,
+                'other_testcases': other_testcases,
                 'mode': 'edit'
             }
             return render(request, 'contest_problem/add_problem_form.html', context)
     else:
         messages.error(request, 'You do not have permission to access this page.')
-        return redirect('home')    
+        return redirect('home')
+   
     
 
 
@@ -525,7 +593,65 @@ def delete_problem(request, problem_id):
         problem = get_object_or_404(Problem, id=problem_id)
         problem.delete()
         messages.success(request, 'Problem deleted successfully!')
-        return redirect('contest_problems_list')  # Corrected redirect
+        return redirect('contest_problems_list')  
     else:
         messages.error(request, 'You do not have permission to access this page.')
         return redirect('home')
+    
+
+# Contest Analytics page
+@login_required(login_url='admin_login')
+def contest_analytics(request):
+    if not request.user.is_staff:
+        messages.error(request, "You do not have permission to access this page.")
+        return redirect('home')
+
+    contests = Contest.objects.all()
+    total_contests = contests.count()
+    total_public = contests.filter(is_public=True).count()
+    total_private = contests.filter(is_public=False).count()
+
+    upcoming = 0
+    ongoing = 0
+    ended = 0
+    for contest in contests:
+        status = contest.status
+        if status == 'upcoming':
+            upcoming += 1
+        elif status == 'ongoing':
+            ongoing += 1
+        else:
+            ended += 1
+
+    total_participants = ContestParticipation.objects.count()
+    average_participants = ContestParticipation.objects.values('contest').annotate(count=Count('user')).aggregate(avg=Avg('count'))['avg'] or 0
+
+    
+    top_contests = Contest.objects.annotate(participant_count=Count('contestparticipation')).order_by('-participant_count')[:5]
+
+    context = {
+        'total_contests': total_contests,
+        'total_public': total_public,
+        'total_private': total_private,
+        'upcoming': upcoming,
+        'ongoing': ongoing,
+        'ended': ended,
+        'total_participants': total_participants,
+        'average_participants': round(average_participants, 2),
+        'top_contests': top_contests,
+    }
+
+    return render(request, 'contest_problem/contest_analytics.html', context)    
+
+@login_required(login_url='admin_login')
+def all_submission(request):
+    submissions = Submission.objects.select_related('user', 'problem', 'contest').order_by('-submitted_at')
+    return render(request, 'dashboard/all_submissions.html', {'submissions': submissions})
+
+@login_required(login_url='admin_login')
+def ban_user(request, user_id):
+    user_to_ban = get_object_or_404(User, id=user_id)
+    user_to_ban.is_active = False
+    user_to_ban.save()
+    messages.success(request, f'User {user_to_ban.username} has been banned.')
+    return redirect('all_submission')

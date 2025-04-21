@@ -1,0 +1,324 @@
+{% extends 'sidebar.html' %}
+{% block title %}All Submissions{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-800 flex items-center">
+            <i class="fas fa-code mr-3 text-blue-600"></i>All Submissions
+        </h1>
+        <p class="text-sm text-gray-500 mt-1">Review and manage all user submissions</p>
+    </div>
+
+    <!-- Alert for messages -->
+    {% if messages %}
+    {% for message in messages %}
+    <div
+        class="mb-4 p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+        <div class="flex items-center">
+            <i
+                class="{% if message.tags == 'success' %}fas fa-check-circle{% elif message.tags == 'error' %}fas fa-exclamation-circle{% else %}fas fa-info-circle{% endif %} mr-2"></i>
+            {{ message }}
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Filters and Search -->
+    <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <div class="flex flex-wrap gap-4">
+            <div class="flex-1">
+                <input type="text" id="searchInput" placeholder="Search by username or problem..."
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div class="w-full md:w-auto flex gap-2">
+                <select id="statusFilter"
+                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All Statuses</option>
+                    <option value="Accepted">Accepted</option>
+                    <option value="Wrong Answer">Wrong Answer</option>
+                    <option value="Time Limit Exceeded">Time Limit Exceeded</option>
+                    <option value="Memory Limit Exceeded">Memory Limit Exceeded</option>
+                    <option value="Runtime Error">Runtime Error</option>
+                    <option value="Compilation Error">Compilation Error</option>
+                </select>
+                <select id="languageFilter"
+                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All Languages</option>
+                    <option value="C++">C++</option>
+                    <option value="Java">Java</option>
+                    <option value="Python">Python</option>
+                    <option value="JavaScript">JavaScript</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submissions Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID
+                        </th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User
+                        </th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Problem</th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Contest</th>
+            
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status</th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time
+                        </th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Memory</th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Submitted At</th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" id="submissionsTableBody">
+                    {% for submission in submissions %}
+                    <tr class="submission-row hover:bg-gray-50" data-status="{{ submission.status }}"
+                        data-language="{{ submission.language }}">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ submission.id }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="text-sm font-medium text-gray-900">{{ submission.user.username }}</div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ submission.problem.title }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {% if submission.contest %}
+                            {{ submission.contest.title }}
+                            {% else %}
+                            Practice
+                            {% endif %}
+                        </td>
+
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                {% if submission.status == 'Accepted' %}
+                                    bg-green-100 text-green-800
+                                {% elif submission.status == 'Wrong Answer' %}
+                                    bg-red-100 text-red-800
+                                {% elif submission.status == 'Time Limit Exceeded' %}
+                                    bg-yellow-100 text-yellow-800
+                                {% elif submission.status == 'Memory Limit Exceeded' %}
+                                    bg-orange-100 text-orange-800
+                                {% elif submission.status == 'Runtime Error' %}
+                                    bg-purple-100 text-purple-800
+                                {% else %}
+                                    bg-gray-100 text-gray-800
+                                {% endif %}">
+                                {{ submission.status }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{submission.execution_time|floatformat:2 }}ms</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{submission.memory_used|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ submission.submitted_at|date:"M d, Y H:i" }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div class="flex items-center space-x-2">
+                                <button class="view-code text-blue-600 hover:text-blue-900"
+                                    data-submission-id="{{ submission.id }}" data-code="{{ submission.code|escapejs }}">
+                                    View Code
+                                </button>
+                                <a href="{% url 'ban_user' submission.user.id %}"
+                                    class="text-red-600 hover:text-red-900"
+                                    onclick="return confirm('Are you sure you want to ban {{ submission.user.username }}?')">
+                                    Ban Participant
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                            No submissions found
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <div
+        class="mt-6 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 rounded-lg shadow">
+        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <div>
+                <p class="text-sm text-gray-700">
+                    Showing <span class="font-medium">1</span> to <span class="font-medium">10</span> of <span
+                        class="font-medium">{{ submissions.count }}</span> results
+                </p>
+            </div>
+            <div>
+                <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                    <a href="#"
+                        class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                        <span class="sr-only">Previous</span>
+                        <i class="fas fa-chevron-left h-5 w-5"></i>
+                    </a>
+                    <a href="#" aria-current="page"
+                        class="relative z-10 inline-flex items-center bg-blue-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-blue-600">1</a>
+                    <a href="#"
+                        class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">2</a>
+                    <a href="#"
+                        class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">3</a>
+                    <span
+                        class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">...</span>
+                    <a href="#"
+                        class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                        <span class="sr-only">Next</span>
+                        <i class="fas fa-chevron-right h-5 w-5"></i>
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Code View Modal -->
+<div id="codeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-75 hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+            <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                <i class="fas fa-code mr-2 text-blue-500"></i>
+                <span id="modalTitle">Submission Code</span>
+            </h3>
+            <button id="closeModal" class="text-gray-400 hover:text-gray-500">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <div class="p-6 overflow-auto flex-grow">
+            <div class="bg-gray-800 rounded-lg overflow-hidden">
+                <pre><code id="codeDisplay" class="language-javascript text-white text-sm p-4 block whitespace-pre-wrap overflow-x-auto"></code></pre>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-4 py-3 sm:px-6 flex justify-end">
+            <button id="copyCode"
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <i class="fas fa-copy mr-2"></i> Copy Code
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Code viewing modal functionality
+        const modal = document.getElementById('codeModal');
+        const codeDisplay = document.getElementById('codeDisplay');
+        const modalTitle = document.getElementById('modalTitle');
+        const closeModal = document.getElementById('closeModal');
+        const copyCodeBtn = document.getElementById('copyCode');
+        const viewCodeButtons = document.querySelectorAll('.view-code');
+
+        // Open modal with code
+        viewCodeButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const submissionId = this.getAttribute('data-submission-id');
+                let code = this.getAttribute('data-code');
+
+                // Decode unicode escaped characters
+                code = code.replace(/\\u[\dA-F]{4}/gi,
+                    match => String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16)));
+
+                // Also decode escaped characters like \n, \t, etc.
+                code = code.replace(/\\n/g, '\n')
+                    .replace(/\\t/g, '\t')
+                    .replace(/\\r/g, '\r')
+                    .replace(/\\"/g, '"')
+                    .replace(/\\\\/g, '\\');
+
+                modalTitle.textContent = `Submission #${submissionId}`;
+                codeDisplay.textContent = code;
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; 
+            });
+        });
+
+        // Close modal
+        closeModal.addEventListener('click', function () {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto'; // Re-enable scrolling
+        });
+
+        // Close modal when clicking outside
+        modal.addEventListener('click', function (event) {
+            if (event.target === modal) {
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        // Copy code to clipboard
+        copyCodeBtn.addEventListener('click', function () {
+            const codeText = codeDisplay.textContent;
+            navigator.clipboard.writeText(codeText).then(function () {
+                // Show success feedback
+                copyCodeBtn.innerHTML = '<i class="fas fa-check mr-2"></i> Copied!';
+                copyCodeBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                copyCodeBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+
+                // Reset button after 2 seconds
+                setTimeout(function () {
+                    copyCodeBtn.innerHTML = '<i class="fas fa-copy mr-2"></i> Copy Code';
+                    copyCodeBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                    copyCodeBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                }, 2000);
+            });
+        });
+
+        // Filtering functionality
+        const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const languageFilter = document.getElementById('languageFilter');
+        const rows = document.querySelectorAll('.submission-row');
+
+        function applyFilters() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const statusTerm = statusFilter.value;
+            const languageTerm = languageFilter.value;
+
+            rows.forEach(row => {
+                const rowText = row.textContent.toLowerCase();
+                const status = row.getAttribute('data-status');
+                const language = row.getAttribute('data-language');
+
+                const matchesSearch = searchTerm === '' || rowText.includes(searchTerm);
+                const matchesStatus = statusTerm === '' || status === statusTerm;
+                const matchesLanguage = languageTerm === '' || language === languageTerm;
+
+                if (matchesSearch && matchesStatus && matchesLanguage) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        searchInput.addEventListener('input', applyFilters);
+        statusFilter.addEventListener('change', applyFilters);
+        languageFilter.addEventListener('change', applyFilters);
+    });
+</script>
+{% endblock %}

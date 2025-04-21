@@ -57,6 +57,7 @@ urlpatterns = [
     path('addcontest/', addcontest, name='addcontest'),
     path('contest/edit/<int:contest_id>/', editcontest, name='editcontest'),
     path('contest/delete/<int:contest_id>/', deletecontest, name='deletecontest'),
+    path('contest_analytics/', contest_analytics, name='contest_analytics'),
 
     # Practice Problem urls
     path('practice-problems/', practice_problems_list, name='practice_problems_list'),
@@ -70,6 +71,10 @@ urlpatterns = [
     path('contest-problems/', contest_problems_list, name='contest_problems_list'),
     path('contest-problems/<int:problem_id>/delete/', delete_problem, name='delete_problem'),
     path('contest-problems/<int:problem_id>/update/', edit_problem, name='edit_problem'),
+
+    # Submission urls
+    path('submissions/', all_submission, name='all_submission'),
+    path('ban_user/<int:user_id>/', ban_user, name='ban_user'),
 ]
 
 if settings.DEBUG:

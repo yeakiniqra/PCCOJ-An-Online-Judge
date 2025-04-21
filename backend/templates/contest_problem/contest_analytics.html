@@ -1,0 +1,257 @@
+{% extends 'sidebar.html' %}
+{% block title %}Contest Analytics{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-indigo-800 flex items-center">
+            <i class="fas fa-chart-line mr-3 text-indigo-600"></i>Contest Analytics
+        </h1>
+    </div>
+
+    <!-- Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Total Contests Card -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm text-gray-500 font-medium">Total Contests</p>
+                    <h3 class="text-2xl font-bold mt-1">{{ total_contests }}</h3>
+                    <p class="text-xs text-blue-600 mt-2">
+                        <span class="font-medium">{{ total_public }}</span> public,
+                        <span class="font-medium">{{ total_private }}</span> private
+                    </p>
+                </div>
+                <div class="p-3 bg-blue-100 rounded-full">
+                    <i class="fas fa-trophy text-blue-600"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contest Status Card -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm text-gray-500 font-medium">Contest Status</p>
+                    <h3 class="text-2xl font-bold mt-1">{{ ongoing }}</h3>
+                    <p class="text-xs text-green-600 mt-2">
+                        <span class="font-medium">{{ ongoing }}</span> ongoing,
+                        <span class="font-medium">{{ upcoming }}</span> upcoming,
+                        <span class="font-medium">{{ ended }}</span> ended
+                    </p>
+                </div>
+                <div class="p-3 bg-green-100 rounded-full">
+                    <i class="fas fa-clock text-green-600"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Participants Card -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm text-gray-500 font-medium">Total Participants</p>
+                    <h3 class="text-2xl font-bold mt-1">{{ total_participants }}</h3>
+                    <p class="text-xs text-purple-600 mt-2">
+                        <span class="font-medium">{{ average_participants }}</span> average per contest
+                    </p>
+                </div>
+                <div class="p-3 bg-purple-100 rounded-full">
+                    <i class="fas fa-users text-purple-600"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Contest Status Chart -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+            <h4 class="font-medium mb-4">Contest Status Distribution</h4>
+            <div class="h-64">
+                <canvas id="contestStatusChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Public vs Private Chart -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+            <h4 class="font-medium mb-4">Public vs Private Contests</h4>
+            <div class="h-64">
+                <canvas id="publicPrivateChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Contests Table -->
+    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-8">
+        <h4 class="font-medium mb-4">Top Contests by Participants</h4>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div class="flex items-center">
+                                <i class="fas fa-hashtag mr-2"></i>Rank
+                            </div>
+                        </th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div class="flex items-center">
+                                <i class="fas fa-heading mr-2"></i>Title
+                            </div>
+                        </th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div class="flex items-center">
+                                <i class="fas fa-users mr-2"></i>Participants
+                            </div>
+                        </th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div class="flex items-center">
+                                <i class="fas fa-calendar-alt mr-2"></i>Date
+                            </div>
+                        </th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div class="flex items-center">
+                                <i class="fas fa-info-circle mr-2"></i>Status
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for contest in top_contests %}
+                    <tr class="hover:bg-gray-50 transition-colors duration-200">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">{{ forloop.counter }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">{{ contest.title }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-500">{{ contest.participant_count }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-500">{{ contest.start_time|date:"M d, Y" }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                                {% if contest.status == 'ongoing' %}bg-green-100 text-green-800
+                                {% elif contest.status == 'upcoming' %}bg-blue-100 text-blue-800
+                                {% elif contest.status == 'ended' %}bg-purple-100 text-purple-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ contest.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                            No contests found
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Get template variables and parse them properly for JS
+        const upcomingContests = parseInt("{{ upcoming|default:0 }}");
+        const ongoingContests = parseInt("{{ ongoing|default:0 }}");
+        const endedContests = parseInt("{{ ended|default:0 }}");
+        const totalPublic = parseInt("{{ total_public|default:0 }}");
+        const totalPrivate = parseInt("{{ total_private|default:0 }}");
+
+        // Contest Status Distribution Chart
+        const statusCtx = document.getElementById('contestStatusChart').getContext('2d');
+        const statusChart = new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Upcoming', 'Ongoing', 'Ended'],
+                datasets: [{
+                    data: [
+                        upcomingContests,
+                        ongoingContests,
+                        endedContests
+                    ],
+                    backgroundColor: [
+                        '#3b82f6', // blue
+                        '#10b981', // green
+                        '#8b5cf6'  // purple
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+
+        // Public vs Private Chart
+        const publicPrivateCtx = document.getElementById('publicPrivateChart').getContext('2d');
+        const publicPrivateChart = new Chart(publicPrivateCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Public', 'Private'],
+                datasets: [{
+                    data: [
+                        totalPublic,
+                        totalPrivate
+                    ],
+                    backgroundColor: [
+                        '#ef4444', // red
+                        '#f59e0b'  // amber
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

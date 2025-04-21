@@ -2,132 +2,461 @@
 
 {% block title %}
     {% if mode == 'add' %}
-        Add Problem
+        Add Contest Problem
     {% else %}
-        Edit Problem
+        Edit Contest Problem
     {% endif %}
 {% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50 flex justify-center items-center py-10">
-    <div class="bg-white w-full max-w-4xl p-8 rounded-lg shadow-lg space-y-6">
-        <h2 class="text-3xl font-semibold text-center text-blue-600">
-            {% if mode == 'add' %} Add New Problem {% else %} Edit Problem {% endif %}
-        </h2>
+<!-- Required CSS imports -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-        <form method="POST" enctype="multipart/form-data" class="space-y-6">
+<div class="bg-gray-100 py-8 px-4 min-h-screen">
+    <div class="max-w-6xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-800 py-6 px-8">
+            <h2 class="text-3xl font-bold text-white flex items-center">
+                <i class="fas fa-puzzle-piece mr-3"></i>
+                {% if mode == 'add' %}Add New Contest Problem{% else %}Edit Contest Problem{% endif %}
+            </h2>
+            <p class="text-blue-100 mt-2">Create challenging problems for contestants</p>
+        </div>
+
+        <form method="POST" id="problemForm" class="p-8">
             {% csrf_token %}
             
-            <!-- Contest Selection -->
-            <div class="flex flex-col">
-                <label for="contest_id" class="font-medium text-gray-700">Select Contest</label>
-                <select name="contest_id" id="contest_id" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500" required>
-                    <option value="" disabled {% if not problem.contest.id %}selected{% endif %}>--Select Contest--</option>
-                    {% for contest in contests %}
-                        <option value="{{ contest.id }}" {% if mode == 'edit' and contest.id == problem.contest.id %}selected{% endif %}>{{ contest.title }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <!-- Basic Information Section -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-700 border-b border-gray-200 pb-2 mb-4 flex items-center">
+                            <i class="fas fa-info-circle text-blue-500 mr-2"></i>Basic Information
+                        </h3>
+                        
+                        <!-- Contest Selection -->
+                        <div class="mb-5">
+                            <label for="contest_id" class="block text-sm font-medium text-gray-700 mb-1">
+                                <i class="fas fa-trophy text-yellow-600 mr-2"></i>Select Contest
+                            </label>
+                            <select name="contest_id" id="contest_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                                <option value="" disabled {% if not problem.contest.id %}selected{% endif %}>--Select Contest--</option>
+                                {% for contest in contests %}
+                                    <option value="{{ contest.id }}" {% if mode == 'edit' and contest.id == problem.contest.id %}selected{% endif %}>{{ contest.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
 
-            <!-- Title -->
-            <div class="flex flex-col">
-                <label for="title" class="font-medium text-gray-700">Title</label>
-                <input type="text" id="title" name="title" value="{% if mode == 'edit' %}{{ problem.title }}{% endif %}" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500" required>
-            </div>
+                        <!-- Title -->
+                        <div class="mb-5">
+                            <label for="title" class="block text-sm font-medium text-gray-700 mb-1">
+                                <i class="fas fa-heading text-blue-600 mr-2"></i>Problem Title
+                            </label>
+                            <input type="text" id="title" name="title" value="{% if mode == 'edit' %}{{ problem.title }}{% endif %}" 
+                                placeholder="Enter a descriptive title" 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                        </div>
 
-            <!-- Statement -->
-            <div class="flex flex-col">
-                <label for="statement" class="font-medium text-gray-700">Statement</label>
-                <textarea id="statement" name="statement" rows="5" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500" required>{% if mode == 'edit' %}{{ problem.statement }}{% endif %}</textarea>
-            </div>
+                        <!-- Difficulty, Time & Memory Limits -->
+                        <div class="grid grid-cols-3 gap-4 mb-5">
+                            <div>
+                                <label for="difficulty" class="block text-sm font-medium text-gray-700 mb-1">
+                                    <i class="fas fa-gauge-high text-red-500 mr-2"></i>Difficulty
+                                </label>
+                                <select name="difficulty" id="difficulty" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                                    {% for value, label in difficulty_choices %}
+                                        <option value="{{ value }}" {% if mode == 'edit' and value == problem.difficulty %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="time_limit" class="block text-sm font-medium text-gray-700 mb-1">
+                                    <i class="fas fa-clock text-orange-500 mr-2"></i>Time Limit (s)
+                                </label>
+                                <input type="number" id="time_limit" name="time_limit" value="{% if mode == 'edit' %}{{ problem.time_limit }}{% else %}1.0{% endif %}" 
+                                    step="0.1" min="0.1" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            </div>
+                            
+                            <div>
+                                <label for="memory_limit" class="block text-sm font-medium text-gray-700 mb-1">
+                                    <i class="fas fa-memory text-purple-500 mr-2"></i>Memory Limit (MB)
+                                </label>
+                                <input type="number" id="memory_limit" name="memory_limit" value="{% if mode == 'edit' %}{{ problem.memory_limit }}{% else %}256{% endif %}" 
+                                    min="1" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            </div>
+                        </div>
 
-            <!-- Input Format -->
-            <div class="flex flex-col">
-                <label for="input_format" class="font-medium text-gray-700">Input Format</label>
-                <textarea id="input_format" name="input_format" rows="3" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500" required>{% if mode == 'edit' %}{{ problem.input_format }}{% endif %}</textarea>
+                        <!-- Points & Visibility -->
+                        <div class="flex items-center justify-between mb-5">
+                            <div class="w-1/2 mr-4">
+                                <label for="points" class="block text-sm font-medium text-gray-700 mb-1">
+                                    <i class="fas fa-star text-yellow-500 mr-2"></i>Points
+                                </label>
+                                <input type="number" id="points" name="points" value="{% if mode == 'edit' %}{{ problem.points }}{% else %}100{% endif %}" 
+                                    min="1" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            </div>
+                            
+                            <div class="w-1/2 flex items-center bg-gray-50 p-4 rounded-lg">
+                                <input type="checkbox" id="is_visible" name="is_visible" class="form-checkbox h-5 w-5 text-blue-600" 
+                                    {% if mode == 'add' or problem.is_visible %}checked{% endif %}>
+                                <label for="is_visible" class="ml-2 text-sm font-medium text-gray-700">
+                                    <i class="fas fa-eye text-green-600 mr-2"></i>Make Problem Visible
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tags Section -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-700 border-b border-gray-200 pb-2 mb-4 flex items-center">
+                            <i class="fas fa-tags text-blue-500 mr-2"></i>Problem Tags
+                        </h3>
+                        
+                        <div class="mb-5">
+                            <label for="tags" class="block text-sm font-medium text-gray-700 mb-1">Select Relevant Tags</label>
+                            <select name="tags" id="tags" multiple class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                {% for tag in all_tags %}
+                                    <option value="{{ tag.id }}" {% if mode == 'edit' and tag in problem.tags.all %}selected{% endif %}>{{ tag.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <p class="mt-1 text-xs text-gray-500">Tags help contestants find problems matching their interests</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <!-- Problem Statement Section -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-700 border-b border-gray-200 pb-2 mb-4 flex items-center">
+                            <i class="fas fa-file-alt text-blue-500 mr-2"></i>Problem Description
+                        </h3>
+                        
+                        <div class="mb-5">
+                            <label for="statement" class="block text-sm font-medium text-gray-700 mb-1">
+                                <i class="fas fa-align-left text-gray-500 mr-2"></i>Problem Statement
+                            </label>
+                            <textarea id="statement" name="statement" rows="5" 
+                                placeholder="Describe the problem in detail..." 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>{% if mode == 'edit' %}{{ problem.statement }}{% endif %}</textarea>
+                        </div>
+                        
+                        <div class="mb-5">
+                            <label for="input_format" class="block text-sm font-medium text-gray-700 mb-1">
+                                <i class="fas fa-arrow-right-to-bracket text-teal-600 mr-2"></i>Input Format
+                            </label>
+                            <textarea id="input_format" name="input_format" rows="3" 
+                                placeholder="Describe how the input is formatted..." 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>{% if mode == 'edit' %}{{ problem.input_format }}{% endif %}</textarea>
+                        </div>
+                        
+                        <div class="mb-5">
+                            <label for="output_format" class="block text-sm font-medium text-gray-700 mb-1">
+                                <i class="fas fa-arrow-right-from-bracket text-green-600 mr-2"></i>Output Format
+                            </label>
+                            <textarea id="output_format" name="output_format" rows="3" 
+                                placeholder="Describe how the output should be formatted..." 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>{% if mode == 'edit' %}{{ problem.output_format }}{% endif %}</textarea>
+                        </div>
+                        
+                        <div class="mb-5">
+                            <label for="constraints" class="block text-sm font-medium text-gray-700 mb-1">
+                                <i class="fas fa-ban text-red-500 mr-2"></i>Constraints
+                            </label>
+                            <textarea id="constraints" name="constraints" rows="3" 
+                                placeholder="List any constraints or limitations..." 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">{% if mode == 'edit' %}{{ problem.constraints }}{% endif %}</textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Sample I/O -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-700 border-b border-gray-200 pb-2 mb-4 flex items-center">
+                            <i class="fas fa-code text-blue-500 mr-2"></i>Sample Input/Output
+                        </h3>
+                        
+                        <div class="mb-5 grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="sample_input" class="block text-sm font-medium text-gray-700 mb-1">
+                                    <i class="fas fa-keyboard text-blue-600 mr-2"></i>Sample Input
+                                </label>
+                                <textarea id="sample_input" name="sample_input" rows="3" 
+                                    placeholder="Sample input for the problem..." 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono" required>{% if mode == 'edit' %}{{ problem.sample_input }}{% endif %}</textarea>
+                            </div>
+                            
+                            <div>
+                                <label for="sample_output" class="block text-sm font-medium text-gray-700 mb-1">
+                                    <i class="fas fa-display text-purple-600 mr-2"></i>Sample Output
+                                </label>
+                                <textarea id="sample_output" name="sample_output" rows="3" 
+                                    placeholder="Expected output for the sample input..." 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono" required>{% if mode == 'edit' %}{{ problem.sample_output }}{% endif %}</textarea>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="explanation" class="block text-sm font-medium text-gray-700 mb-1">
+                                <i class="fas fa-circle-info text-blue-600 mr-2"></i>Explanation
+                            </label>
+                            <textarea id="explanation" name="explanation" rows="3" 
+                                placeholder="Explain the sample case (optional)..." 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">{% if mode == 'edit' %}{{ problem.explanation }}{% endif %}</textarea>
+                        </div>
+                    </div>
+                </div>
             </div>
+            
+            <!-- Test Cases Section -->
+            <div class="mt-8 mb-6">
+                <h3 class="text-xl font-semibold text-gray-800 border-b border-gray-200 pb-3 mb-6 flex items-center">
+                    <i class="fas fa-vials text-blue-600 mr-2"></i>Test Cases
+                </h3>
 
-            <!-- Output Format -->
-            <div class="flex flex-col">
-                <label for="output_format" class="font-medium text-gray-700">Output Format</label>
-                <textarea id="output_format" name="output_format" rows="3" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500" required>{% if mode == 'edit' %}{{ problem.output_format }}{% endif %}</textarea>
+                <!-- Hidden input to track the number of test cases -->
+                <input type="hidden" id="testcase_count" name="testcase_count" value="{% if other_testcases %}{{ other_testcases|length }}{% else %}0{% endif %}">
+                
+                <!-- Sample Test Case -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-lg font-medium text-blue-800 flex items-center">
+                            <i class="fas fa-flask mr-2"></i>Sample Test Case
+                        </h4>
+                        <div class="text-sm text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
+                            Visible to contestants
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Input</label>
+                            <textarea name="sample_testcase_input" rows="4" 
+                                placeholder="Input for sample test case..." 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono">{% if sample_testcase %}{{ sample_testcase.input }}{% endif %}</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Output</label>
+                            <textarea name="sample_testcase_output" rows="4" 
+                                placeholder="Expected output for sample test case..." 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono">{% if sample_testcase %}{{ sample_testcase.output }}{% endif %}</textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Container for Additional Test Cases -->
+                <div id="testCasesContainer" class="space-y-4">
+                    {% if other_testcases %}
+                        {% for testcase in other_testcases %}
+                            <div class="test-case bg-gray-50 border border-gray-200 rounded-lg p-5 transition-all duration-300">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h5 class="font-medium text-gray-700">Test Case #{{ forloop.counter }}</h5>
+                                    <button type="button" class="remove-test-case text-red-500 hover:text-red-700 bg-red-50 rounded-md px-3 py-1">
+                                        <i class="fas fa-trash mr-1"></i> Remove
+                                    </button>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
+                                    <div class="md:col-span-1">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Points</label>
+                                        <input type="number" name="testcase_points_{{ forloop.counter0 }}" value="{{ testcase.points }}" min="0"
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    <div class="md:col-span-3">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Input</label>
+                                        <textarea name="testcase_input_{{ forloop.counter0 }}" rows="4"
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono">{{ testcase.input }}</textarea>
+                                    </div>
+                                    <div class="md:col-span-3">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Output</label>
+                                        <textarea name="testcase_output_{{ forloop.counter0 }}" rows="4"
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono">{{ testcase.output }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                
+                <!-- Add Test Case Button -->
+                <button type="button" id="addTestCase" class="mt-5 flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                    <i class="fas fa-plus mr-2"></i> Add Test Case
+                </button>
             </div>
-
-            <!-- Constraints -->
-            <div class="flex flex-col">
-                <label for="constraints" class="font-medium text-gray-700">Constraints</label>
-                <textarea id="constraints" name="constraints" rows="3" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500">{% if mode == 'edit' %}{{ problem.constraints }}{% endif %}</textarea>
-            </div>
-
-            <!-- Sample Input -->
-            <div class="flex flex-col">
-                <label for="sample_input" class="font-medium text-gray-700">Sample Input</label>
-                <textarea id="sample_input" name="sample_input" rows="3" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500" required>{% if mode == 'edit' %}{{ problem.sample_input }}{% endif %}</textarea>
-            </div>
-
-            <!-- Sample Output -->
-            <div class="flex flex-col">
-                <label for="sample_output" class="font-medium text-gray-700">Sample Output</label>
-                <textarea id="sample_output" name="sample_output" rows="3" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500" required>{% if mode == 'edit' %}{{ problem.sample_output }}{% endif %}</textarea>
-            </div>
-
-            <!-- Explanation -->
-            <div class="flex flex-col">
-                <label for="explanation" class="font-medium text-gray-700">Explanation</label>
-                <textarea id="explanation" name="explanation" rows="3" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500">{% if mode == 'edit' %}{{ problem.explanation }}{% endif %}</textarea>
-            </div>
-
-            <!-- Time Limit -->
-            <div class="flex flex-col">
-                <label for="time_limit" class="font-medium text-gray-700">Time Limit (seconds)</label>
-                <input type="number" id="time_limit" name="time_limit" value="{% if mode == 'edit' %}{{ problem.time_limit }}{% else %}1.0{% endif %}" step="0.1" min="0.1" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500" required>
-            </div>
-
-            <!-- Memory Limit -->
-            <div class="flex flex-col">
-                <label for="memory_limit" class="font-medium text-gray-700">Memory Limit (MB)</label>
-                <input type="number" id="memory_limit" name="memory_limit" value="{% if mode == 'edit' %}{{ problem.memory_limit }}{% else %}256{% endif %}" min="1" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500" required>
-            </div>
-
-            <!-- Difficulty -->
-            <div class="flex flex-col">
-                <label for="difficulty" class="font-medium text-gray-700">Difficulty</label>
-                <select name="difficulty" id="difficulty" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500" required>
-                    {% for value, label in difficulty_choices %}
-                        <option value="{{ value }}" {% if mode == 'edit' and value == problem.difficulty %}selected{% endif %}>{{ label }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Points -->
-            <div class="flex flex-col">
-                <label for="points" class="font-medium text-gray-700">Points</label>
-                <input type="number" id="points" name="points" value="{% if mode == 'edit' %}{{ problem.points }}{% else %}100{% endif %}" min="1" class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500" required>
-            </div>
-
-            <!-- Visibility -->
-            <div class="flex items-center space-x-3">
-                <input type="checkbox" id="is_visible" name="is_visible" class="form-checkbox text-blue-600" {% if mode == 'add' or problem.is_visible %}checked{% endif %}>
-                <label for="is_visible" class="font-medium text-gray-700">Visible</label>
-            </div>
-
-            <!-- Tags -->
-            <div class="flex flex-col">
-                <label for="tags" class="font-medium text-gray-700">Tags</label>
-                <select name="tags" id="tags" multiple class="border-2 border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500">
-                    {% for tag in all_tags %}
-                        <option value="{{ tag.id }}" {% if mode == 'edit' and tag in problem.tags.all %}selected{% endif %}>{{ tag.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Submit Button -->
-            <div class="text-center">
-                <button type="submit" class="bg-blue-600 text-white font-semibold py-3 px-6 rounded-full hover:bg-blue-700 transition duration-300">
-                    {% if mode == 'add' %} Add Problem {% else %} Update Problem {% endif %}
+            
+            <!-- Form Actions -->
+            <div class="mt-10 flex items-center justify-between pt-6 border-t border-gray-200">
+                <a href="{% if mode == 'add' %}{% url 'contest_problems_list' %}{% else %}{% url 'edit_problem' problem_id=problem.id %}{% endif %}" 
+                   class="px-5 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i> Cancel
+                </a>
+                
+                <button type="submit" class="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                    <i class="fas fa-save mr-2"></i>
+                    {% if mode == 'add' %}Create Problem{% else %}Update Problem{% endif %}
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+<!-- Required JS Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        
+        $('#tags').select2({
+            placeholder: 'Select relevant tags',
+            allowClear: true,
+            closeOnSelect: false
+        });
+
+        
+        let testCaseCount = $('#testcase_count').val() ? parseInt($('#testcase_count').val()) : 0;
+        
+       
+        $('#addTestCase').on('click', function() {
+            addNewTestCase();
+        });
+        
+       
+        attachRemoveTestCaseHandlers();
+        
+        
+        function addNewTestCase() {
+            const testCasesContainer = document.getElementById('testCasesContainer');
+            
+            
+            const testCaseDiv = document.createElement('div');
+            testCaseDiv.className = 'test-case bg-gray-50 border border-gray-200 rounded-lg p-5 transition-all duration-300';
+            
+           
+            testCaseDiv.innerHTML = `
+                <div class="flex justify-between items-center mb-4">
+                    <h5 class="font-medium text-gray-700">Test Case #${testCaseCount + 1}</h5>
+                    <button type="button" class="remove-test-case text-red-500 hover:text-red-700 bg-red-50 rounded-md px-3 py-1">
+                        <i class="fas fa-trash mr-1"></i> Remove
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
+                    <div class="md:col-span-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Points</label>
+                        <input type="number" name="testcase_points_${testCaseCount}" value="10" min="0"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Input</label>
+                        <textarea name="testcase_input_${testCaseCount}" rows="4"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono"></textarea>
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Output</label>
+                        <textarea name="testcase_output_${testCaseCount}" rows="4"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono"></textarea>
+                    </div>
+                </div>
+            `;
+            
+           
+            testCaseDiv.style.opacity = '0';
+            testCaseDiv.style.transform = 'translateY(20px)';
+            
+            
+            testCasesContainer.appendChild(testCaseDiv);
+            
+            
+            void testCaseDiv.offsetWidth;
+            
+            
+            testCaseDiv.style.opacity = '1';
+            testCaseDiv.style.transform = 'translateY(0)';
+            
+            
+            testCaseCount++;
+            $('#testcase_count').val(testCaseCount);
+            
+           
+            attachRemoveTestCaseHandlers();
+        }
+        
+       
+        function attachRemoveTestCaseHandlers() {
+            $('.remove-test-case').off('click').on('click', function() {
+                handleRemoveTestCase($(this));
+            });
+        }
+        
+       
+        function handleRemoveTestCase($button) {
+            const $testCase = $button.closest('.test-case');
+            
+          
+            $testCase.css({
+                'opacity': '0',
+                'transform': 'translateY(20px)'
+            });
+            
+            setTimeout(function() {
+                $testCase.remove();
+                
+              
+                testCaseCount--;
+                $('#testcase_count').val(testCaseCount);
+                
+                
+                $('.test-case').each(function(index) {
+                    
+                    $(this).find('h5').text(`Test Case #${index + 1}`);
+                    
+                    
+                    $(this).find('input[name^="testcase_points_"]').attr('name', `testcase_points_${index}`);
+                    $(this).find('textarea[name^="testcase_input_"]').attr('name', `testcase_input_${index}`);
+                    $(this).find('textarea[name^="testcase_output_"]').attr('name', `testcase_output_${index}`);
+                });
+            }, 300);
+        }
+        
+       
+        $('#problemForm').on('submit', function(e) {
+            let isValid = true;
+            
+          
+            const requiredFields = ['title', 'statement', 'input_format', 'output_format', 'sample_input', 'sample_output'];
+            requiredFields.forEach(field => {
+                const $field = $(`#${field}`);
+                if (!$field.val().trim()) {
+                    $field.addClass('border-red-500 ring-1 ring-red-500');
+                    isValid = false;
+                } else {
+                    $field.removeClass('border-red-500 ring-1 ring-red-500');
+                }
+            });
+            
+           
+            const $contest = $('#contest_id');
+            if (!$contest.val()) {
+                $contest.addClass('border-red-500 ring-1 ring-red-500');
+                isValid = false;
+            } else {
+                $contest.removeClass('border-red-500 ring-1 ring-red-500');
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+               
+                const $firstError = $('.border-red-500').first();
+                if ($firstError.length) {
+                    $('html, body').animate({
+                        scrollTop: $firstError.offset().top - 100
+                    }, 500);
+                }
+               
+                alert('Please fill in all required fields');
+            }
+        });
+    });
+</script>
 {% endblock %}
