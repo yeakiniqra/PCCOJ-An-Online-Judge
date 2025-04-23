@@ -99,7 +99,7 @@ Run the backend
 ```
 Project will be running at http://127.0.0.1:8000/
 
-
+You will Need Judeg0 API KEY & GEMINI API KEY also to run the project
 
 ## 🏗️ Tech Stack
 
