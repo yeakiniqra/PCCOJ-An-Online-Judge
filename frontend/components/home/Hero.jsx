@@ -76,8 +76,8 @@ export default function HeroSection() {
                         and real-time competitions
                     </p>
                     <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
-                        <Button label="Get Started" href="/get-started" className="text-lg px-6 py-3 md:text-xl md:px-8 md:py-4" />
-                        <Button label="Explore Contests" href="/explore-problems" variant="secondary" className="text-lg px-6 py-3 md:text-xl md:px-8 md:py-4" />
+                        <Button label="Get Started" href="/practice" className="text-lg px-6 py-3 md:text-xl md:px-8 md:py-4" />
+                        <Button label="Explore Contests" href="/contests" variant="secondary" className="text-lg px-6 py-3 md:text-xl md:px-8 md:py-4" />
                     </div>
                 </div>
                 

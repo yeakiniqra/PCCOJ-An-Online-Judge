@@ -22,6 +22,9 @@ import {
     BarChart3,
 } from "lucide-react"
 import useAuthStore from "@/store/AuthStore"
+import { CalendarIcon, Activity } from "lucide-react"
+import { generateMockSubmissionData } from "@/utils/mock-data"
+import SubmissionHeatmap from "./submission-heatmap"
 
 export default function Profile() {
     const { user, fetchUserProfile, updateUserProfile } = useAuthStore()
@@ -36,12 +39,12 @@ export default function Profile() {
     const fileInputRef = useRef(null)
 
     useEffect(() => {
-        // Fetch the latest user data when component mounts
+
         fetchUserProfile()
     }, [fetchUserProfile])
 
     useEffect(() => {
-        // Update form data when user data changes
+
         if (user) {
             setFormData({
                 mobile: user.mobile || "",
@@ -541,6 +544,47 @@ export default function Profile() {
                                     <Globe className="h-5 w-5 text-green-400" />
                                     <span>Website</span>
                                 </button>
+                            </div>
+                        </motion.div>
+
+                        {/* Submission Activity Heatmap */}
+                        <motion.div
+                            variants={itemVariants}
+                            className="md:col-span-2 bg-gray-900/60 backdrop-blur-sm rounded-xl border border-gray-800 p-6"
+                        >
+                            <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+                                <Activity className="h-5 w-5 mr-2 text-purple-400" />
+                                Submission Activity
+                            </h3>
+
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="text-sm text-gray-400">
+                                        <CalendarIcon className="h-4 w-4 inline mr-1" />
+                                        <span>Submissions in the last year</span>
+                                    </div>
+                                    <div className="flex items-center gap-1 text-xs">
+                                        <span className="text-gray-400">Less</span>
+                                        <div className="flex gap-1">
+                                            <div className="w-3 h-3 rounded-sm bg-purple-900/30"></div>
+                                            <div className="w-3 h-3 rounded-sm bg-purple-800/40"></div>
+                                            <div className="w-3 h-3 rounded-sm bg-purple-700/60"></div>
+                                            <div className="w-3 h-3 rounded-sm bg-purple-600/80"></div>
+                                            <div className="w-3 h-3 rounded-sm bg-purple-500"></div>
+                                        </div>
+                                        <span className="text-gray-400">More</span>
+                                    </div>
+                                </div>
+
+                                <div className="overflow-x-auto pb-2">
+                                    <div className="min-w-[750px]">
+                                        <SubmissionHeatmap submissions={generateMockSubmissionData()} />
+                                    </div>
+                                </div>
+
+                                <div className="text-center text-sm text-gray-400 mt-2">
+                                    {user.total_submissions} total submissions in this year
+                                </div>
                             </div>
                         </motion.div>
                     </motion.div>
