@@ -71,7 +71,7 @@ export default function ScrollToTop() {
   return (
     <AnimatePresence>
       {isVisible && (
-        <div className="fixed bottom-8 right-8 z-50">
+        <div className="fixed bottom-8 left-8 z-50">
           {/* Progress circle */}
           <svg
             className="absolute -inset-1 w-[calc(100%+8px)] h-[calc(100%+8px)] rotate-[-90deg]"
