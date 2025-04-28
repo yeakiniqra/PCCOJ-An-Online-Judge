@@ -194,14 +194,11 @@
                         <i class="fas fa-chevron-down transition-transform duration-300 text-white"></i>
                     </button>
                     <div id="users-dropdown" class="dropdown-menu pl-4 pr-2">
-                        <a href="#" class="sidebar-link mt-1">
+                        <a href="{% url 'view_all_users' %}" class="sidebar-link mt-1">
                             <i class="fas fa-user-friends w-5 text-gray-100"></i>
                             <span class="text-gray-100">All Users</span>
                         </a>
-                        <a href="#" class="sidebar-link mt-1">
-                            <i class="fas fa-user-shield w-5 text-gray-100"></i>
-                            <span class="text-gray-100">Admin Users</span>
-                        </a>
+                       
                     </div>
                 </div>
 
@@ -216,13 +213,13 @@
                         <i class="fas fa-chevron-down transition-transform duration-300 text-white"></i>
                     </button>
                     <div id="comm-dropdown" class="dropdown-menu pl-4 pr-2">
-                        <a href="#" class="sidebar-link mt-1">
+                        <a href="{% url 'announcement_list' %}" class="sidebar-link mt-1">
                             <i class="fas fa-bell w-5 text-gray-100"></i>
                             <span class="text-gray-100">Announcements</span>
                         </a>
-                        <a href="#" class="sidebar-link mt-1">
+                        <a href="{% url 'send_email_notification' %}" class="sidebar-link mt-1">
                             <i class="fas fa-envelope w-5 text-gray-100"></i>
-                            <span class="text-gray-100">Send Emails</span>
+                            <span class="text-gray-100">Send Notifications</span>
                         </a>
                     </div>
                 </div>

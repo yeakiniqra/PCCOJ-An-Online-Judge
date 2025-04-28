@@ -1,0 +1,179 @@
+{% extends 'sidebar.html' %}
+{% block title %}Announcements{% endblock %}
+
+{% block content %}
+<div class="p-4 sm:p-6 lg:p-8 bg-white">
+    <div class="sm:flex sm:items-center sm:justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+                <i class="fas fa-bullhorn mr-2 text-indigo-600"></i> Announcements
+            </h1>
+            <p class="mt-1 text-sm text-gray-500">
+                Manage all system announcements and notifications
+            </p>
+        </div>
+        <div>
+            <a href="{% url 'announcement_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                <i class="fas fa-plus mr-2"></i>
+                New Announcement
+            </a>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="border-b border-gray-200 mb-5">
+        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+            <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-600" data-tab="all">
+                <i class="fas fa-border-all mr-2"></i>
+                All <span class="bg-gray-100 text-gray-600 ml-2 py-0.5 px-2.5 rounded-full text-xs font-medium">{{ announcements|length }}</span>
+            </button>
+            <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="normal">
+                <i class="fas fa-info-circle mr-2"></i>
+                General
+            </button>
+            <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="contest">
+                <i class="fas fa-trophy mr-2"></i>
+                Contests
+            </button>
+            <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="training">
+                <i class="fas fa-graduation-cap mr-2"></i>
+                Training
+            </button>
+            <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="resource">
+                <i class="fas fa-book mr-2"></i>
+                Resources
+            </button>
+            <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="featured">
+                <i class="fas fa-star mr-2"></i>
+                Featured
+            </button>
+        </nav>
+    </div>
+
+    <!-- Announcement Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for announcement in announcements %}
+        <div class="announcement-card border rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200 bg-white 
+                    {% if announcement.is_expired %}opacity-60{% endif %}
+                    {% if announcement.is_featured %}border-yellow-300{% else %}border-gray-200{% endif %}"
+             data-type="{{ announcement.announcement_type }}"
+             data-featured="{{ announcement.is_featured|lower }}">
+            
+            <div class="p-4 {% if announcement.is_featured %}bg-yellow-50{% endif %}">
+                <div class="flex justify-between items-start">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                        {% if announcement.announcement_type == 'normal' %}bg-blue-100 text-blue-800
+                        {% elif announcement.announcement_type == 'contest' %}bg-purple-100 text-purple-800
+                        {% elif announcement.announcement_type == 'training' %}bg-green-100 text-green-800
+                        {% elif announcement.announcement_type == 'resource' %}bg-orange-100 text-orange-800{% endif %}">
+                        {% if announcement.announcement_type == 'normal' %}<i class="fas fa-info-circle mr-1"></i>
+                        {% elif announcement.announcement_type == 'contest' %}<i class="fas fa-trophy mr-1"></i>
+                        {% elif announcement.announcement_type == 'training' %}<i class="fas fa-graduation-cap mr-1"></i>
+                        {% elif announcement.announcement_type == 'resource' %}<i class="fas fa-book mr-1"></i>{% endif %}
+                        {{ announcement.get_announcement_type_display }}
+                    </span>
+                    
+                    {% if announcement.is_featured %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        <i class="fas fa-star mr-1"></i> Featured
+                    </span>
+                    {% endif %}
+                </div>
+            
+                <h3 class="text-lg font-medium text-gray-900 mt-3">{{ announcement.title }}</h3>
+                
+                <div class="mt-2 text-sm text-gray-500 line-clamp-3">
+                    {{ announcement.content|linebreaksbr|truncatechars:150 }}
+                </div>
+                
+                {% if announcement.image %}
+                <div class="mt-4">
+                    <img src="{{ announcement.image.url }}" alt="{{ announcement.title }}" class="w-full h-32 object-cover rounded-md">
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="border-t border-gray-200 bg-gray-50 px-4 py-3">
+                <div class="flex justify-between items-center text-sm">
+                    <div class="flex items-center text-gray-500">
+                        <i class="fas fa-user-edit mr-1"></i>
+                        {{ announcement.created_by.username }}
+                        <span class="mx-1">•</span>
+                        <i class="fas fa-calendar mr-1"></i>
+                        {{ announcement.created_at|date:"M d, Y" }}
+                        
+                        {% if announcement.is_expired %}
+                        <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                            <i class="fas fa-clock mr-1"></i> Expired
+                        </span>
+                        {% elif announcement.expires_at %}
+                        <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                            <i class="fas fa-hourglass-half mr-1"></i> Expires {{ announcement.expires_at|date:"M d" }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                        <a href="{% url 'announcement_update' announcement.pk %}" class="text-indigo-600 hover:text-indigo-900">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{% url 'announcement_delete' announcement.pk %}" class="text-red-600 hover:text-red-900" 
+                           onclick="return confirm('Are you sure you want to delete this announcement?')">
+                            <i class="fas fa-trash-alt"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full flex flex-col items-center justify-center py-12 text-gray-500">
+            <i class="fas fa-bullhorn text-4xl mb-4"></i>
+            <h3 class="text-lg font-medium">No Announcements Yet</h3>
+            <p class="mt-1">Create your first announcement to get started</p>
+            <a href="{% url 'announcement_create' %}" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                <i class="fas fa-plus mr-2"></i> Create Announcement
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Tab functionality
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const announcementCards = document.querySelectorAll('.announcement-card');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Update active tab style
+            tabButtons.forEach(btn => {
+                btn.classList.remove('border-indigo-500', 'text-indigo-600');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+            this.classList.add('border-indigo-500', 'text-indigo-600');
+            this.classList.remove('border-transparent', 'text-gray-500');
+            
+            // Filter announcements
+            const tabType = this.getAttribute('data-tab');
+            
+            announcementCards.forEach(card => {
+                const cardType = card.getAttribute('data-type');
+                const isFeatured = card.getAttribute('data-featured');
+                
+                if (tabType === 'all' || 
+                    (tabType === cardType) || 
+                    (tabType === 'featured' && isFeatured === 'true')) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+    
+    // Initialize with 'All' tab selected
+    document.querySelector('[data-tab="all"]').click();
+});
+</script>
+{% endblock %}

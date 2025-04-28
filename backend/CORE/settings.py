@@ -163,3 +163,10 @@ LOGOUT_REDIRECT_URL = "/accounts/login/"
 
 JUDGE0_API_URL = 'https://judge0-ce.p.rapidapi.com'
 JUDGE0_API_KEY = '322f8bd067msh2eac2e26e162eaap1287aajsn2b19e7705869'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'iqrartz.media@gmail.com'
+EMAIL_HOST_PASSWORD = 'vznoypfkrzkoiysj'

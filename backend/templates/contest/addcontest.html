@@ -1,6 +1,6 @@
 {% extends 'sidebar.html' %}
 
-{% block title %}{% if mode == 'add' %}Add Contest{% else %}Edit Contest{% endif %}{% endblock %}
+{% block title %}Add Contest{% endblock %}
 
 {% block content %}
 <style>
@@ -9,6 +9,7 @@
         border-color: #D1D5DB;
         border-radius: 0.375rem;
     }
+
     .select2-container--default .select2-selection--multiple .select2-selection__choice {
         background-color: #4F46E5;
         color: white;
@@ -16,10 +17,12 @@
         padding: 2px 8px;
         border-radius: 0.25rem;
     }
+
     .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
         color: white;
         margin-right: 5px;
     }
+
     .select2-dropdown {
         border-color: #D1D5DB;
         border-radius: 0.375rem;
@@ -30,13 +33,14 @@
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-indigo-800">
-            {% if mode == 'add' %}
-            <i class="fas fa-plus-circle mr-2"></i> Add New Contest
-            {% else %}
+            {% if contest %}
             <i class="fas fa-edit mr-2"></i> Edit Contest
+            {% else %}
+            <i class="fas fa-plus-circle mr-2"></i> Add New Contest
             {% endif %}
         </h1>
-        <a href="{% url 'allcontest' %}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center">
+        <a href="{% url 'allcontest' %}"
+            class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center">
             <i class="fas fa-arrow-left mr-2"></i> Back to List
         </a>
     </div>
@@ -45,9 +49,11 @@
     {% if messages %}
     <div class="mb-6">
         {% for message in messages %}
-        <div class="p-4 mb-4 {% if message.tags == 'success' %}bg-green-100 text-green-700 border-l-4 border-green-500{% elif message.tags == 'error' %}bg-red-100 text-red-700 border-l-4 border-red-500{% endif %} rounded-md">
+        <div
+            class="p-4 mb-4 {% if message.tags == 'success' %}bg-green-100 text-green-700 border-l-4 border-green-500{% elif message.tags == 'error' %}bg-red-100 text-red-700 border-l-4 border-red-500{% endif %} rounded-md">
             <div class="flex items-center">
-                <i class="{% if message.tags == 'success' %}fas fa-check-circle text-green-500{% elif message.tags == 'error' %}fas fa-exclamation-circle text-red-500{% endif %} mr-2"></i>
+                <i
+                    class="{% if message.tags == 'success' %}fas fa-check-circle text-green-500{% elif message.tags == 'error' %}fas fa-exclamation-circle text-red-500{% endif %} mr-2"></i>
                 <p>{{ message }}</p>
             </div>
         </div>
@@ -103,7 +109,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Start Time -->
                     <div class="mb-4">
-                        <label for="start_time" class="block text-sm font-medium text-gray-700 mb-1">Start Time *</label>
+                        <label for="start_time" class="block text-sm font-medium text-gray-700 mb-1">Start Time
+                            *</label>
                         <input type="datetime-local" name="start_time" id="start_time" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
@@ -125,7 +132,8 @@
 
                 <!-- Max Participants -->
                 <div class="mb-4">
-                    <label for="max_participants" class="block text-sm font-medium text-gray-700 mb-1">Max Participants (optional)</label>
+                    <label for="max_participants" class="block text-sm font-medium text-gray-700 mb-1">Max Participants
+                        (optional)</label>
                     <input type="number" name="max_participants" id="max_participants"
                         class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
@@ -148,7 +156,8 @@
 
             <!-- Submit Button -->
             <div class="flex justify-end mt-8">
-                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center">
+                <button type="submit"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center">
                     <i class="fas fa-save mr-2"></i>
                     Create Contest
                 </button>

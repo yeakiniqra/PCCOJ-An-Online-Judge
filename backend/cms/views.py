@@ -7,6 +7,10 @@ from django.utils.dateparse import parse_datetime
 from django.utils.text import slugify
 from django.utils import timezone
 from django.db.models import Count, Avg
+from django.contrib.auth.models import User
+from django.conf import settings
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 
 
 
@@ -655,3 +659,122 @@ def ban_user(request, user_id):
     user_to_ban.save()
     messages.success(request, f'User {user_to_ban.username} has been banned.')
     return redirect('all_submission')
+
+
+@login_required(login_url='admin_login')
+def view_all_users(request):
+    users = User.objects.select_related('profile').all()  
+    return render(request, 'dashboard/all_users.html', {'users': users})
+
+
+# Announcement Management
+@login_required(login_url='admin_login')
+def announcement_list(request):
+    announcements = Announcement.objects.all()
+    return render(request, 'announcement/announcement_list.html', {'announcements': announcements})
+
+
+@login_required(login_url='admin_login')
+def announcement_create(request):
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        content = request.POST.get('content')
+        announcement_type = request.POST.get('announcement_type', 'normal')
+        is_featured = request.POST.get('is_featured') == 'on'
+        is_global = request.POST.get('is_global') == 'on'
+        external_link = request.POST.get('external_link')
+        expires_at = request.POST.get('expires_at')
+        image = request.FILES.get('image')
+
+        announcement = Announcement.objects.create(
+            title=title,
+            content=content,
+            announcement_type=announcement_type,
+            is_featured=is_featured,
+            is_global=is_global,
+            external_link=external_link,
+            created_by=request.user,
+        )
+
+        if image:
+            announcement.image = image
+
+        if expires_at:
+            announcement.expires_at = expires_at
+
+        announcement.save()
+
+        return redirect('announcement_list')
+    
+    return render(request, 'announcement/announcement_form.html', {'action': 'Create'})
+
+
+@login_required(login_url='admin_login')
+def announcement_update(request, pk):
+    announcement = get_object_or_404(Announcement, pk=pk)
+
+    if request.method == 'POST':
+        announcement.title = request.POST.get('title')
+        announcement.content = request.POST.get('content')
+        announcement.announcement_type = request.POST.get('announcement_type', 'normal')
+        announcement.is_featured = request.POST.get('is_featured') == 'on'
+        announcement.is_global = request.POST.get('is_global') == 'on'
+        announcement.external_link = request.POST.get('external_link')
+        expires_at = request.POST.get('expires_at')
+        image = request.FILES.get('image')
+
+        if image:
+            announcement.image = image
+        
+        if expires_at:
+            announcement.expires_at = expires_at
+        else:
+            announcement.expires_at = None
+
+        announcement.save()
+        return redirect('announcement_list')
+
+    return render(request, 'announcement/announcement_form.html', {'action': 'Update', 'announcement': announcement})
+
+
+@login_required(login_url='admin_login')
+def announcement_delete(request, pk):
+    announcement = get_object_or_404(Announcement, pk=pk)
+    announcement.delete()
+    return redirect('announcement_list')
+
+
+@login_required(login_url='admin_login')
+def send_email_notification(request):
+    users = User.objects.filter(is_active=True)
+    
+    if request.method == 'POST':
+        subject = request.POST.get('subject')
+        message = request.POST.get('message')
+
+        if not subject or not message:
+            messages.error(request, "Subject and message are required.")
+            return redirect('send_email_notification')
+
+        recipient_list = [user.email for user in users if user.email]
+
+        if not recipient_list:
+            messages.error(request, "No active users with email addresses found.")
+            return redirect('send_email_notification')
+
+        # You can also load an HTML email template if you want
+        html_message = render_to_string('dashboard/email_template.html', {'message': message})
+
+        send_mail(
+            subject=subject,
+            message=message,  # Fallback for email clients that do not support HTML
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=recipient_list,
+            fail_silently=False,
+            html_message=html_message
+        )
+
+        messages.success(request, "Email sent successfully to all active users!")
+        return redirect('send_email_notification')
+
+    return render(request, 'dashboard/send_email.html')

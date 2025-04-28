@@ -75,6 +75,15 @@ urlpatterns = [
     # Submission urls
     path('submissions/', all_submission, name='all_submission'),
     path('ban_user/<int:user_id>/', ban_user, name='ban_user'),
+    path('view_all_user/', view_all_users, name='view_all_users'),
+
+    # Announcement urls
+    path('announcements/', announcement_list, name='announcement_list'),
+    path('announcements/create/', announcement_create, name='announcement_create'),
+    path('announcements/<int:pk>/update/', announcement_update, name='announcement_update'),
+    path('announcements/<int:pk>/delete/', announcement_delete, name='announcement_delete'),
+    path('send-email/', send_email_notification, name='send_email_notification'),
+
 ]
 
 if settings.DEBUG:

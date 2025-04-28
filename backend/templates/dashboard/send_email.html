@@ -1,0 +1,147 @@
+{% extends 'sidebar.html' %}
+{% block title %}Send Email Notification{% endblock %}
+
+{% block content %}
+<div class="p-4 sm:p-6 lg:p-8 bg-white">
+    <div class="sm:flex sm:items-center sm:justify-between mb-6">
+        <div>
+            <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+                <i class="fas fa-envelope mr-2 text-indigo-600"></i> Email Notification
+            </h2>
+            <p class="mt-1 text-sm text-gray-500">
+                Send mass email notifications to all active users
+            </p>
+        </div>
+        <div class="mt-4 sm:mt-0">
+            <span class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white">
+                <i class="fas fa-users mr-2 text-indigo-500"></i>
+                <span>{{ users.count }} recipients</span>
+            </span>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-4 p-4 {% if message.tags == 'success' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %} rounded-md">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        {% if message.tags == 'success' %}
+                            <i class="fas fa-check-circle text-green-500"></i>
+                        {% else %}
+                            <i class="fas fa-exclamation-circle text-red-500"></i>
+                        {% endif %}
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm">{{ message }}</p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <form method="post">
+            {% csrf_token %}
+            <div class="px-4 py-5 space-y-6 sm:p-6">
+                <!-- Email Preview -->
+                <div class="border border-dashed border-gray-300 rounded-md p-4 bg-gray-50">
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">
+                        <i class="fas fa-eye mr-2 text-indigo-500"></i>Email Preview
+                    </h3>
+                    <div class="flex items-center mb-3">
+                        <div class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white">
+                            <i class="fas fa-code text-lg"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-900">PCC Online Judge</p>
+                            <p class="text-xs text-gray-500">noreply@pccoj.com</p>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-gray-200 my-2"></div>
+                    
+                    <div class="preview-subject font-medium text-gray-800">
+                        <span id="preview-subject">[Subject will appear here]</span>
+                    </div>
+                    
+                    <div class="preview-message text-sm text-gray-600 mt-2">
+                        <span id="preview-message">[Message content will appear here]</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="subject" class="block text-sm font-medium text-gray-700">
+                        Subject <span class="text-red-500">*</span>
+                    </label>
+                    <div class="mt-1">
+                        <input type="text" name="subject" id="subject" 
+                               class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-2 px-3" 
+                               placeholder="Enter email subject" required>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="message" class="block text-sm font-medium text-gray-700">
+                        Message <span class="text-red-500">*</span>
+                    </label>
+                    <div class="mt-1">
+                        <textarea id="message" name="message" rows="10" 
+                                  class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-2 px-3" 
+                                  placeholder="Enter your message content here. You can use basic HTML tags." required></textarea>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">
+                        <i class="fas fa-info-circle mr-1"></i> Basic HTML formatting is supported (bold, italic, links, etc.)
+                    </p>
+                </div>
+               
+            </div>
+            
+            <div class="px-4 py-3 bg-gray-50 text-right sm:px-6 border-t border-gray-200">
+                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <i class="fas fa-paper-plane mr-2"></i>
+                    Send Email to All Users
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const subjectInput = document.getElementById('subject');
+    const messageInput = document.getElementById('message');
+    const previewSubject = document.getElementById('preview-subject');
+    const previewMessage = document.getElementById('preview-message');
+    
+    // Update preview as user types
+    subjectInput.addEventListener('input', function() {
+        previewSubject.textContent = this.value || '[Subject will appear here]';
+    });
+    
+    messageInput.addEventListener('input', function() {
+        previewMessage.innerHTML = this.value || '[Message content will appear here]';
+    });
+    
+    // Handle template tag insertion
+    const insertTagButtons = document.querySelectorAll('.insert-tag');
+    insertTagButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const tag = this.getAttribute('data-tag');
+            const textarea = document.getElementById('message');
+            const cursorPos = textarea.selectionStart;
+            const textBefore = textarea.value.substring(0, cursorPos);
+            const textAfter = textarea.value.substring(cursorPos);
+            
+            textarea.value = textBefore + tag + textAfter;
+            textarea.focus();
+            textarea.selectionStart = cursorPos + tag.length;
+            textarea.selectionEnd = cursorPos + tag.length;
+            
+            // Trigger input event to update preview
+            const event = new Event('input');
+            textarea.dispatchEvent(event);
+        });
+    });
+});
+</script>
+{% endblock %}
