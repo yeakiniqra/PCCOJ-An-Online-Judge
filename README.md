@@ -28,6 +28,12 @@ This is an Online Judge Designed for Programming Contest Club.Here student can j
 - AI-powered hints and problem explanation
 - Difficulty tagging and smart recommendations for students
 
+
+https://github.com/user-attachments/assets/eff28714-b55a-4ca0-8e21-f969db191a55
+
+
+
+
 ### 📣 **Announcements & Notifications**
 - Dedicated tab for training sessions, contest announcements, and club news
 - Stay updated with real-time notifications 🔔
