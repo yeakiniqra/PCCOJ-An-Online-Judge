@@ -12,20 +12,22 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
-import dotenv
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load .env file
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-2*@c@6ooq#bueicn02pg_h5twf*28h%9tkxv(a=5r(vxkc5px4'
+SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = True if os.environ['DEBUG']=='1' else False
 
 ALLOWED_HOSTS = []
 
@@ -161,12 +163,12 @@ LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/accounts/login/" 
 
 
-JUDGE0_API_URL = 'https://judge0-ce.p.rapidapi.com'
-JUDGE0_API_KEY = '322f8bd067msh2eac2e26e162eaap1287aajsn2b19e7705869'
+JUDGE0_API_URL = os.environ['JUDGE0_API_URL']
+JUDGE0_API_KEY = os.environ['JUDGE0_API_KEY']
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
+EMAIL_HOST = os.environ['EMAIL_HOST']
+EMAIL_PORT = os.environ['EMAIL_PORT']
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'iqrartz.media@gmail.com'
-EMAIL_HOST_PASSWORD = 'vznoypfkrzkoiysj'
+EMAIL_HOST_USER = os.environ['EMAIL_HOST_USER']
+EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']

@@ -1,6 +1,6 @@
 import Groq from "groq-sdk";
 
-const groq = new Groq({ apiKey: "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", dangerouslyAllowBrowser: true });
+const groq = new Groq({ apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY });
 
 
 const systemPrompt = `

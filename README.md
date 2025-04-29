@@ -99,7 +99,16 @@ Run the backend
 ```
 Project will be running at http://127.0.0.1:8000/
 
-You will Need Judeg0 API KEY & GEMINI API KEY also to run the project
+## API KEYS
+
+For Frontned
+- Gemini API KEY
+- Grok API KEY
+
+For Backend
+- judge0 API KEY
+- EMAIL_HOST_USER
+- EMAIL_HOST_PASSWORD 
 
 ## 🏗️ Tech Stack
 

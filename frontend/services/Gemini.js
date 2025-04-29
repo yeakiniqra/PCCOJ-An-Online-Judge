@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Get API key from environment variable
-const API_KEY = "AIzaSyDySDirj3E_bQEegqVzQ_wu0KlloATohIc";
+const API_KEY = PROCESS_ENV.NEXT_GEMINI_API_KEY;
 
 export async function simplifyProblemStatement(statement) {
     try {
